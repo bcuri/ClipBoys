@@ -1,0 +1,170 @@
+@layer theme, base, frosted_ui, components, utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Bungee:wght@400&family=Inter:wght@400;600;700;800&display=swap');
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@whop/react/styles.css" layer(frosted_ui);
+
+/* ClipBoy Brand Variables */
+:root {
+  --brand-green: #32E33F;
+  --brand-black: #000;
+  --brand-white: #fff;
+  --accent-yellow: #FFD400;
+  --cutline: #0F0F0F;
+  --shadow-green: #1BA82A;
+  --radius: 24px;
+  --tilt: 12deg;
+  --shadow: 0.25rem 0.5rem 0 var(--brand-black);
+}
+
+@config '../tailwind.config.ts';
+
+body {
+	background: var(--background);
+	color: var(--foreground);
+	font-family: 'Inter', sans-serif;
+}
+
+/* Custom Animations */
+@keyframes fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes slide-up {
+	from {
+		opacity: 0;
+		transform: translateY(30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes gradient-x {
+	0%, 100% {
+		background-size: 200% 200%;
+		background-position: left center;
+	}
+	50% {
+		background-size: 200% 200%;
+		background-position: right center;
+	}
+}
+
+.animate-fade-in {
+	animation: fade-in 0.8s ease-out;
+}
+
+.animate-slide-up {
+	animation: slide-up 1s ease-out 0.3s both;
+}
+
+.animate-gradient-x {
+	animation: gradient-x 3s ease infinite;
+}
+
+/* ClipBoy Brand Utilities */
+.brand-gradient {
+  background: linear-gradient(to right, var(--brand-green), var(--accent-yellow));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.brand-tilt {
+  transform: rotate(var(--tilt));
+}
+
+.brand-shadow {
+  box-shadow: var(--shadow);
+}
+
+.brand-button-primary {
+  background: var(--brand-green);
+  color: var(--brand-white);
+  border: 4px solid var(--brand-black);
+  box-shadow: var(--shadow);
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+}
+
+.brand-button-primary:hover {
+  background: var(--shadow-green);
+  transform: translateY(-2px);
+  box-shadow: 0.5rem 0.75rem 0 var(--brand-black);
+}
+
+.brand-display {
+  font-family: 'Bungee', cursive;
+  font-weight: 400;
+}
+
+.brand-body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Scene background with horizon grid in brand green */
+.scene-bg {
+  position: relative;
+  isolation: isolate;
+  background-color: #000; /* safety */
+}
+
+.scene-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(80rem 40rem at 50% 75%, rgba(50,227,63,0.12), rgba(0,0,0,0) 70%),
+    radial-gradient(40rem 20rem at 50% 88%, rgba(50,227,63,0.18), rgba(0,0,0,0) 60%),
+    #000;
+  z-index: -2;
+}
+
+.scene-bg::after {
+  /* faux perspective grid fading into a green horizon */
+  content: "";
+  position: fixed; /* span full page while scrolling */
+  left: 50%;
+  bottom: -10%;
+  width: 200vw;
+  height: 200vh;
+  transform: translateX(-50%) perspective(900px) rotateX(62deg);
+  background-image:
+    repeating-linear-gradient(to right, rgba(50,227,63,0.22) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(to top, rgba(50,227,63,0.22) 0 1px, transparent 1px 48px);
+  /* Visible across the page, softer near the top, disappears at the very top */
+  mask-image: linear-gradient(
+    to top,
+    rgba(255,255,255,0.10) 0%,
+    rgba(255,255,255,0.25) 20%,
+    rgba(255,255,255,0.60) 55%,
+    rgba(255,255,255,0.80) 85%,
+    rgba(255,255,255,0.08) 98%,
+    rgba(255,255,255,0.00) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to top,
+    rgba(255,255,255,0.10) 0%,
+    rgba(255,255,255,0.25) 20%,
+    rgba(255,255,255,0.60) 55%,
+    rgba(255,255,255,0.80) 85%,
+    rgba(255,255,255,0.08) 98%,
+    rgba(255,255,255,0.00) 100%
+  );
+  opacity: .8;
+  z-index: -1;
+  pointer-events: none;
+}

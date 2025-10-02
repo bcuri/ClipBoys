@@ -1,0 +1,47 @@
+{
+	"name": "whop-nextjs-app-template",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "whop-proxy --command 'next dev --turbopack'",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:seed": "tsx scripts/seed-templates.ts"
+	},
+	"dependencies": {
+		"@paralleldrive/cuid2": "^2.2.2",
+		"@vercel/functions": "^2.0.3",
+		"@whop/api": "^0.0.50",
+		"@whop/react": "0.2.36",
+		"better-sqlite3": "^12.4.1",
+		"clsx": "^2.1.1",
+		"dotenv": "^17.2.2",
+		"drizzle-orm": "^0.44.5",
+		"gsap": "^3.13.0",
+		"lucide-react": "^0.544.0",
+		"motion": "^12.23.22",
+		"next": "15.3.2",
+		"postgres": "^3.4.7",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"simplex-noise": "^4.0.3",
+		"tailwind-merge": "^3.3.1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@tailwindcss/postcss": "^4",
+		"@types/node": "^20",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"@whop-apps/dev-proxy": "0.0.1-canary.116",
+		"dotenv-cli": "^8.0.0",
+		"drizzle-kit": "^0.31.4",
+		"tailwindcss": "^4",
+		"tsx": "^4.20.5",
+		"typescript": "^5"
+	},
+	"packageManager": "pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531"
+}

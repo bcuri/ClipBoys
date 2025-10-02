@@ -1,0 +1,21 @@
+#!/bin/sh
+# Auto-deploy after every commit
+set -e
+
+# Ensure remote exists (idempotent)
+git remote get-url origin >/dev/null 2>&1 || git remote add origin https://github.com/bcuri/ClipBoys.git
+
+# Force push main (matches current workflow)
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+  git branch -M main
+fi
+git push -u origin main --force
+
+# Deploy to Vercel non-interactively
+if command -v vercel >/dev/null 2>&1; then
+  vercel deploy --prod --yes >/dev/null 2>&1 || true
+fi
+
+exit 0
+
