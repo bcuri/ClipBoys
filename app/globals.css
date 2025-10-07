@@ -1,3 +1,14 @@
+/* Prevent double scrollbars */
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  background-color: #000; /* ensure no white gaps */
+}
+
+#__next, body > div:first-child {
+  min-height: 100%;
+  background-color: #000;
+}
 @layer theme, base, frosted_ui, components, utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Bungee:wght@400&family=Inter:wght@400;600;700;800&display=swap');
