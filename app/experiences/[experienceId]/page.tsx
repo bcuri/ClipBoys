@@ -133,7 +133,7 @@ export default function Page() {
 					style={{ fontSize: "56px", lineHeight: 1.1, display: "block", color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
 				>
 					Create high‑performing clips in seconds
-				</h1>
+			</h1>
 				<p className="brand-body text-white/90 text-2xl md:text-3xl max-w-3xl mx-auto font-semibold leading-snug animate-fade-in mb-12">
 					Experience the future of clipping
 					</p>
@@ -208,7 +208,7 @@ export default function Page() {
 													Process YouTube Video
 												</>
 											)}
-										</button>
+								</button>
 									</div>
 								</>
 							) : (
@@ -235,10 +235,10 @@ export default function Page() {
 													<span>Duration: {videoData?.duration}</span>
 													<span>•</span>
 													<span>ID: {videoData?.videoId}</span>
-								</div>
+									</div>
 								</div>
 							</div>
-						</div>
+					</div>
 
 									{/* Generate Clips Button */}
 									<button
@@ -272,7 +272,7 @@ export default function Page() {
 												Generate Clips
 											</>
 										)}
-								</button>
+										</button>
 									
 									{/* Back Button */}
 							<button
@@ -325,10 +325,33 @@ export default function Page() {
                                     <div className="mb-4">
                                         <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
                                         <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
-                                    </div>
-                                    
-                                    {/* Simple YouTube iframe */}
-                                    <div className="relative w-full mb-4" style={{ paddingBottom: '56.25%' /* 16:9 Aspect Ratio */ }}>
+                        </div>
+
+                                    {/* Interactive YouTube iframe */}
+                                    <div 
+                                        className="relative w-full mb-4 group cursor-pointer" 
+                                        style={{ paddingBottom: '56.25%' /* 16:9 Aspect Ratio */ }}
+                                        onMouseEnter={(e) => {
+                                            const iframe = e.currentTarget.querySelector('iframe');
+                                            if (iframe) {
+                                                const currentSrc = iframe.src;
+                                                // Add autoplay=1 to start playing
+                                                iframe.src = currentSrc.replace('autoplay=0', 'autoplay=1');
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            const iframe = e.currentTarget.querySelector('iframe');
+                                            if (iframe) {
+                                                const currentSrc = iframe.src;
+                                                // Remove autoplay and reset to start time
+                                                iframe.src = currentSrc.replace('autoplay=1', 'autoplay=0');
+                                                // Force reload to reset to start time
+                                                setTimeout(() => {
+                                                    iframe.src = embedUrl;
+                                                }, 100);
+                                            }
+                                        }}
+                                    >
                                         <iframe
                                             className="absolute top-0 left-0 w-full h-full rounded-xl"
                                             src={embedUrl}
@@ -337,13 +360,19 @@ export default function Page() {
                                             allowFullScreen
                                             title={c.title}
                                         />
-                                    </div>
-                                    
+                                        {/* Hover overlay indicator */}
+                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                            <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                                                <Play className="h-6 w-6 text-white" />
+								</div>
+							</div>
+						</div>
+
                                     <div className="space-y-3">
                                         <p className="text-white/80 text-sm">{c.description}</p>
                                         <p className="text-cyan-300 text-xs">Hook: {c.hook}</p>
-                                    </div>
-                                </div>
+						</div>
+					</div>
                             );
                         })}
                     </div>
