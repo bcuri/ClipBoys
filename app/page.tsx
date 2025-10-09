@@ -326,7 +326,7 @@ export default function Page() {
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
                             return (
                                 <MagicBentoBorder key={`${c.title}-${i}`} className="rounded-2xl" glowColor="50, 227, 63" borderWidth={2} borderRadius={16} enableTilt={true} enableMagnetism={true}>
-                                <div className="relative bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
+                                <div className="relative group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
                                     {/* Virality badge in top-right */}
                                     {typeof (c as any).score === 'number' && (() => {
                                         const s = Number((c as any).score) || 0;
@@ -371,6 +371,38 @@ export default function Page() {
                                         <p className="text-white/80 text-sm">{c.description}</p>
                                         <p className="text-cyan-300 text-xs">Hook: {c.hook}</p>
                                     </div>
+
+                                    {/* Hover overlay: tags + CTA strip */}
+                                    {(() => {
+                                        const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : '#';
+                                        const tags: string[] = [];
+                                        const s = Number((c as any).score) || 0;
+                                        if ((c.hook || '').length > 0) tags.push('Strong Hook');
+                                        if (c.description?.toLowerCase().includes('surpris')) tags.push('Surprise');
+                                        if (c.description?.toLowerCase().includes('tip') || c.description?.toLowerCase().includes('how')) tags.push('Value');
+                                        if (s >= 80) tags.push('High Virality');
+                                        return (
+                                            <div className="pointer-events-none absolute inset-0 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                <div className="absolute inset-0 bg-black/65 backdrop-blur-sm rounded-2xl" />
+                                                <div className="absolute inset-0 p-5 flex flex-col justify-between">
+                                                    <div>
+                                                        <p className="text-xs uppercase tracking-wider text-white/60">Why this clip hits</p>
+                                                        <p className="mt-1 text-sm text-white/90 line-clamp-3">{(c as any).scoreReasons || c.description}</p>
+                                                        <div className="mt-3 flex flex-wrap gap-1">
+                                                            {tags.map((t) => (
+                                                                <span key={t} className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/80 border border-white/15">{t}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <a href={previewUrl} target="_blank" rel="noreferrer" className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}>Preview</a>
+                                                        <button className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20" onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(c.hook || ''); }}>Copy Hook</button>
+                                                        <button className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20" onClick={(e) => { e.stopPropagation(); }}>Save Clip</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                                 </MagicBentoBorder>
                             );
