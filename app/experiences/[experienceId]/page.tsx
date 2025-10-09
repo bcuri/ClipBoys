@@ -327,16 +327,16 @@ export default function Page() {
                                         <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
                                         <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
 								</div>
-                                    
-                                    {/* Custom Video Player */}
+                                    {/* Thumbnail preview for the clip */}
                                     {videoData?.videoId && (
-                                        <CustomVideoPlayer
-                                            videoId={videoData.videoId}
-                                            start={start}
-                                            end={end}
-                                            title={c.title}
-                                            className="mb-4"
-                                        />
+                                        <div className="relative w-full mb-4 overflow-hidden rounded-xl" style={{ paddingBottom: '56.25%' }}>
+                                            <img
+                                                src={`https://img.youtube.com/vi/${videoData.videoId}/hqdefault.jpg`}
+                                                alt={c.title}
+                                                className="absolute inset-0 w-full h-full object-cover"
+                                            />
+                                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40" />
+                                        </div>
                                     )}
                                     
                                     <div className="space-y-3">
