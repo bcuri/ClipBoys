@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 import MagicBentoBorder from "./MagicBentoBorder";
 
-interface CarouselProps { items: JSX.Element[]; initialScroll?: number; }
+interface CarouselProps { items: React.ReactElement[]; initialScroll?: number; }
 type CardType = { src: string; title: string; category: string; content: React.ReactNode; videoUrl?: string; videoId?: string; startSec?: number; endSec?: number; };
 
 export const CarouselContext = createContext<{ onCardClose: (index: number) => void; currentIndex: number; }>({ onCardClose: () => {}, currentIndex: 0 });
@@ -51,7 +51,7 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
         <div className="flex w-full overflow-x-scroll overscroll-x-auto scroll-smooth py-10 [scrollbar-width:none] md:py-20" ref={carouselRef} onScroll={checkScrollability}>
           <div className={cn("absolute right-0 z-[1000] h-auto w-[5%] overflow-hidden bg-gradient-to-l")} />
           <div className={cn("flex flex-row justify-start gap-4 pl-4","mx-auto max-w-7xl")}>{items.map((item, index) => (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.2 * index, ease: "easeOut", once: true } }} key={"card"+index} className="flex-shrink-0 rounded-3xl last:pr-[5%] md:last:pr-[33%]">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.2 * index, ease: "easeOut" } }} key={"card"+index} className="flex-shrink-0 rounded-3xl last:pr-[5%] md:last:pr-[33%]">
               {item}
             </motion.div>
           ))}</div>
@@ -72,6 +72,11 @@ export const Card = ({ card, index, layout = false }: { card: CardType; index: n
   const inlinePlayerRef = useRef<HTMLDivElement>(null);
   const ytPlayerRef = useRef<any>(null);
   const playerReadyRef = useRef<boolean>(false);
+  const progressTimerRef = useRef<any>(null);
+  const [progressPct, setProgressPct] = useState(0);
+  const clipDuration = (card.endSec || 0) - (card.startSec || 0);
+  const [inView, setInView] = useState(false);
+  const [thumbVisible, setThumbVisible] = useState(true);
   
   const getEmbedUrl = (url?: string) => {
     if (!url) return undefined;
@@ -97,11 +102,26 @@ export const Card = ({ card, index, layout = false }: { card: CardType; index: n
   useEffect(() => { function onKeyDown(event: KeyboardEvent){ if(event.key === "Escape") handleClose(); }
     document.addEventListener("keydown", onKeyDown); return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
-  useOutsideClick(containerRef, () => handleClose());
+  useOutsideClick(containerRef as React.RefObject<HTMLDivElement>, () => handleClose());
   const handleOpen = () => setOpen(true);
   const handleClose = () => { setOpen(false); onCardClose(index); };
 
   // Inline looped clip inside the card using YouTube Iframe API (muted by default)
+  // Observe visibility to lazily mount/destroy player
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        setInView(entry.isIntersecting);
+      },
+      { rootMargin: "200px 0px", threshold: 0.15 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!inlinePlayerRef.current || !card.videoId || !card.startSec || !card.endSec) return;
 
@@ -118,8 +138,18 @@ export const Card = ({ card, index, layout = false }: { card: CardType; index: n
       }
     });
 
-    let loopTimer: any;
+    let localProgressTimer: any;
     let disposed = false;
+    if (!inView) {
+      // If out of view, tear down player to reduce resource usage
+      try { ytPlayerRef.current && ytPlayerRef.current.destroy && ytPlayerRef.current.destroy(); } catch {}
+      ytPlayerRef.current = null;
+      playerReadyRef.current = false;
+      setThumbVisible(true);
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+      return;
+    }
+
     ensureApi().then(() => {
       if (disposed) return;
       const w = window as any;
@@ -130,29 +160,70 @@ export const Card = ({ card, index, layout = false }: { card: CardType; index: n
         playerVars: {
           start: Math.max(0, Math.floor(card.startSec!)),
           end: Math.max(1, Math.floor(card.endSec!)),
-          autoplay: 1,
+          autoplay: 0,
           controls: 0,
           playsinline: 1,
           modestbranding: 1,
           rel: 0,
           fs: 0,
           mute: 1,
+          autohide: 1,
+          iv_load_policy: 3,
+          disablekb: 1,
         },
         events: {
           onReady: (e: any) => {
             e.target.mute();
             e.target.setLoop(false);
             e.target.setVolume(0);
-            e.target.playVideo();
+            // Load video and pause at the clip start
+            try {
+              e.target.loadVideoById({
+                videoId: card.videoId,
+                startSeconds: card.startSec || 0,
+                endSeconds: card.endSec || undefined,
+                suggestedQuality: 'small',
+              });
+              // Ensure it's paused after loading
+              setTimeout(() => {
+                try {
+                  e.target.pauseVideo();
+                  e.target.seekTo(card.startSec || 0, true);
+                } catch {}
+              }, 100);
+            } catch {}
             playerReadyRef.current = true;
-            loopTimer = setInterval(() => {
+            setThumbVisible(false);
+            // Start at a lower quality to minimize initial buffering, then upgrade
+            try { e.target.setPlaybackQuality && e.target.setPlaybackQuality('small'); } catch {}
+            setTimeout(() => { try { e.target.setPlaybackQuality && e.target.setPlaybackQuality('medium'); } catch {} }, 1500);
+            // Progress updater
+            localProgressTimer = setInterval(() => {
               try {
+                const state = e.target.getPlayerState && e.target.getPlayerState();
+                const start = card.startSec || 0;
+                if (state !== w.YT.PlayerState.PLAYING) {
+                  // Keep progress at 0 when paused/cued
+                  setProgressPct(0);
+                  return;
+                }
                 const t = e.target.getCurrentTime();
-                if (t >= (card.endSec! - 0.2)) {
-                  e.target.seekTo(card.startSec!, true);
+                const dur = Math.max(0.001, (card.endSec || 0) - start);
+                const pct = Math.min(100, Math.max(0, ((t - start) / dur) * 100));
+                setProgressPct(pct);
+                if (t >= (card.endSec! - 0.05)) {
+                  // Stop at end and reset to start (paused)
+                  e.target.pauseVideo();
+                  e.target.seekTo(start, true);
+                  setProgressPct(0);
                 }
               } catch {}
-            }, 250);
+            }, 100);
+            progressTimerRef.current = localProgressTimer;
+          },
+          onStateChange: (ev: any) => {
+            // If the player pauses for any reason, try to resume muted playback
+            // We no longer auto-resume; default is paused until hover
           },
         },
       });
@@ -160,10 +231,11 @@ export const Card = ({ card, index, layout = false }: { card: CardType; index: n
 
     return () => {
       disposed = true;
-      if (loopTimer) clearInterval(loopTimer);
+      if (localProgressTimer) clearInterval(localProgressTimer);
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
       try { ytPlayerRef.current && ytPlayerRef.current.destroy && ytPlayerRef.current.destroy(); } catch {}
     };
-  }, [card.videoId, card.startSec, card.endSec]);
+  }, [card.videoId, card.startSec, card.endSec, inView]);
 
   return (<>
     <AnimatePresence>
@@ -212,6 +284,18 @@ export const Card = ({ card, index, layout = false }: { card: CardType; index: n
         </div>
         {/* Inline looped video background */}
         <div className="absolute inset-0 z-10 h-full w-full bg-black">
+          {/* Progress bar at top, within the box */}
+          <div className="absolute left-0 top-0 h-1 w-full bg-white/10 z-30">
+            <div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400" style={{ width: `${progressPct}%` }} />
+          </div>
+          {/* Thumbnail placeholder to avoid blank while player mounts */}
+          {thumbVisible && (
+            <img
+              src={`https://img.youtube.com/vi/${card.videoId}/hqdefault.jpg`}
+              alt={card.title}
+              className="absolute inset-0 h-full w-full object-cover opacity-80"
+            />
+          )}
           <div ref={inlinePlayerRef} className="h-full w-full" />
           {/* On hover: restart from start and unmute; on leave: mute */}
           <div
@@ -221,11 +305,16 @@ export const Card = ({ card, index, layout = false }: { card: CardType; index: n
               try {
                 if (ytPlayerRef.current && playerReadyRef.current) {
                   const start = Math.max(0, Math.floor((card.startSec||0)));
-                  ytPlayerRef.current.pauseVideo && ytPlayerRef.current.pauseVideo();
-                  ytPlayerRef.current.seekTo(start, true);
+                  // Unmute and play from clip start
                   ytPlayerRef.current.unMute && ytPlayerRef.current.unMute();
                   ytPlayerRef.current.setVolume && ytPlayerRef.current.setVolume(100);
-                  ytPlayerRef.current.playVideo && ytPlayerRef.current.playVideo();
+                  ytPlayerRef.current.seekTo(start, true);
+                  // Small delay to ensure seek completes before playing
+                  setTimeout(() => {
+                    try {
+                      ytPlayerRef.current && ytPlayerRef.current.playVideo && ytPlayerRef.current.playVideo();
+                    } catch {}
+                  }, 50);
                 }
               } catch {}
             }}
@@ -233,8 +322,13 @@ export const Card = ({ card, index, layout = false }: { card: CardType; index: n
               e.stopPropagation();
               try {
                 if (ytPlayerRef.current && playerReadyRef.current) {
+                  // Pause, mute, and snap back to the clip start
+                  const start = Math.max(0, Math.floor((card.startSec||0)));
+                  ytPlayerRef.current.pauseVideo && ytPlayerRef.current.pauseVideo();
                   ytPlayerRef.current.mute && ytPlayerRef.current.mute();
                   ytPlayerRef.current.setVolume && ytPlayerRef.current.setVolume(0);
+                  ytPlayerRef.current.seekTo(start, true);
+                  setProgressPct(0);
                 }
               } catch {}
             }}

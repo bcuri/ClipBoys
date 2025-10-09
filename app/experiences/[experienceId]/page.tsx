@@ -43,20 +43,29 @@ export default function Page() {
 		
 		setIsProcessing(true);
 		
-		// Simulate video recognition
-		setTimeout(() => {
+		try {
 			const videoId = extractVideoId(youtubeUrl);
+			let title = "Video";
 			if (videoId) {
+				try {
+					const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+					if (res.ok) {
+						const data = await res.json();
+						title = data?.title || title;
+					}
+				} catch {}
+
 				setVideoData({
-					title: "Sample Video Title - This would be fetched from YouTube API",
+					title,
 					thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
 					duration: "10:30",
-					videoId: videoId
+					videoId
 				});
 				setVideoRecognized(true);
 			}
+		} finally {
 			setIsProcessing(false);
-		}, 2000);
+		}
 	};
 
 const handleGenerateClips = () => {
@@ -71,6 +80,12 @@ const handleGenerateClips = () => {
 				setClips(out.clips);
 				const endTime = Date.now();
 				setGenerationTime(Math.round((endTime - startTime) / 1000));
+                setTimeout(() => {
+                    try {
+                        const el = document.getElementById("generated-title");
+                        el && el.scrollIntoView({ behavior: "smooth", block: "center" });
+                    } catch {}
+                }, 50);
 			})
 			.catch(() => {
 				alert("Unable to generate clips for this video.");
@@ -247,12 +262,12 @@ const handleGenerateClips = () => {
 											e.currentTarget.style.background = 'linear-gradient(90deg, #66CCFF 0%, #22c83c 50%, #06B6D4 100%)';
 										}}
 									>
-										{isGenerating ? (
-											<>
-												<div className="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent mr-2"></div>
-												Generating Clips...
-											</>
-										) : (
+							{isGenerating ? (
+								<>
+									<span className="loader mr-3" />
+									Generating Clips...
+								</>
+							) : (
 											<>
 												<Play className="h-5 w-5 mr-2" style={{ color: '#000' }} />
 												Generate Clips
@@ -292,7 +307,7 @@ const handleGenerateClips = () => {
 						blur={8}
 						speed="fast"
 					>
-					<div className="w-full flex items-center justify-center mb-12">
+					<div id="generated-title" className="w-full flex items-center justify-center mb-12">
 						<Typewriter
 							text={`Generated ${clips?.length || 0} clips in ${generationTime} seconds`}
 							speedMs={20}
@@ -301,36 +316,37 @@ const handleGenerateClips = () => {
 							replayKey={`${clips?.length || 0}-${generationTime}`}
 						/>
 					</div>
-						<Carousel
-							items={clips.map((c, i) => {
+                    <div id="generated-clips" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+							{clips.map((c, i) => {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
 								const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : "#";
 								const thumb = videoData?.videoId ? `https://img.youtube.com/vi/${videoData.videoId}/hqdefault.jpg` : "https://assets.aceternity.com/macbook.png";
 								return (
-									<Card
-										key={`${c.title}-${i}`}
-										index={i}
-										card={{
-											src: thumb,
-											title: c.title,
-											category: `${start}s → ${end}s`,
-											videoUrl: previewUrl,
-                                                                videoId: videoData?.videoId,
-                                                                startSec: start,
-                                                                endSec: end,
-											content: (
-												<div className="space-y-4">
-													<p className="text-neutral-700 dark:text-neutral-200 text-base md:text-lg font-sans">{c.description}</p>
+									<div key={`${c.title}-${i}`}>
+										<Card
+											index={i}
+											card={{
+												src: thumb,
+												title: c.title,
+												category: `${start}s → ${end}s`,
+												videoUrl: previewUrl,
+												videoId: videoData?.videoId,
+												startSec: start,
+												endSec: end,
+												content: (
+													<div className="space-y-4">
+														<p className="text-neutral-700 dark:text-neutral-200 text-base md:text-lg font-sans">{c.description}</p>
 													<p className="text-cyan-600 dark:text-cyan-300 text-sm md:text-base font-sans">Hook: {c.hook}</p>
 													<a href={previewUrl} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-black" style={{ background: "linear-gradient(90deg, #66CCFF 0%, #22c83c 50%, #06B6D4 100%)" }}>Preview</a>
 						</div>
 											),
 										}}
-									/>
+										/>
+									</div>
 								);
 							})}
-						/>
+					</div>
 					</WavyBackground>
 				</div>
 			)}
