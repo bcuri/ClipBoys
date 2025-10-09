@@ -65,7 +65,7 @@ export default function CustomVideoPlayer({
           autoplay: 1,
           controls: 0, // Hide all controls
           modestbranding: 1,
-          rel: 0,
+          rel: 0, // Do not show related videos at the end
           showinfo: 0,
           iv_load_policy: 3, // Hide annotations
           fs: 0, // Hide fullscreen button
@@ -78,6 +78,9 @@ export default function CustomVideoPlayer({
           hl: 'en', // Language
           cc_lang_pref: 'en',
           widget_referrer: window.location.href,
+          // Trick to suppress end-screen 'More videos' overlay by looping the same video id
+          loop: 1,
+          playlist: videoId,
         },
         events: {
           onReady: (event: any) => {
