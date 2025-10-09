@@ -358,7 +358,7 @@ export default function Page() {
                             const start = Math.max(0, Math.floor(Number(c.start) || 0));
                             const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
                             const vid = videoData.videoId;
-                            const embedUrl = `https://www.youtube.com/embed/${vid}?start=${start}&end=${end}&autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&playsinline=1&loop=1&playlist=${vid}&fs=0&disablekb=1`;
+                            const embedUrl = `https://www.youtube.com/embed/${vid}?start=${start}&end=${end}&autoplay=1&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&playsinline=1`;
                             return (
                                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
                                     <div className="relative w-full max-w-5xl mx-auto px-4">
