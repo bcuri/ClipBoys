@@ -316,7 +316,7 @@ export default function Page() {
 							style={{ fontSize: "56px", lineHeight: 1.1 }}
 							replayKey={`${clips?.length || 0}-${generationTime}`}
 						/>
-									</div>
+												</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {clips.map((c, i) => {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
@@ -351,16 +351,48 @@ export default function Page() {
                                     <div className="mb-4">
                                         <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
                                         <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
-                                    </div>
-                                    {/* Thumbnail preview for the clip */}
+											</div>
+                                    {/* Thumbnail preview for the clip with contained hover overlay */}
                                     {videoData?.videoId && (
-                                        <div className="relative w-full mb-4 overflow-hidden rounded-xl" style={{ paddingBottom: '56.25%' }}>
+                                        <div className="relative w-full mb-4 overflow-hidden rounded-xl group/thumb" style={{ paddingBottom: '56.25%' }}>
                                             <img
                                                 src={`https://img.youtube.com/vi/${videoData.videoId}/hqdefault.jpg`}
                                                 alt={c.title}
-                                                className="absolute inset-0 w-full h-full object-cover"
+                                                className="absolute inset-0 w-full h-full object-cover transition-all duration-300 group-hover/thumb:blur-sm"
                                             />
                                             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40" />
+
+                                            {/* Hover overlay confined to thumbnail */}
+                                            {(() => {
+                                                const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : '#';
+                                                const tags: string[] = [];
+                                                const s = Number((c as any).score) || 0;
+                                                if ((c.hook || '').length > 0) tags.push('Strong Hook');
+                                                if (c.description?.toLowerCase().includes('surpris')) tags.push('Surprise');
+                                                if (c.description?.toLowerCase().includes('tip') || c.description?.toLowerCase().includes('how')) tags.push('Value');
+                                                if (s >= 80) tags.push('High Virality');
+                                                return (
+                                                    <div className="pointer-events-none absolute inset-0 z-10 opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300">
+                                                        <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
+                                                        <div className="absolute inset-0 p-4 flex flex-col justify-between">
+                                                            <div>
+                                                                <p className="text-[10px] uppercase tracking-wider text-white/60">Why this clip hits</p>
+                                                                <p className="mt-1 text-sm text-white/90 line-clamp-2">{(c as any).scoreReasons || c.description}</p>
+                                                                <div className="mt-2 flex flex-wrap gap-1">
+                                                                    {tags.map((t) => (
+                                                                        <span key={t} className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/80 border border-white/15">{t}</span>
+									))}
+								</div>
+							</div>
+                                                            <div className="flex items-center justify-between gap-2">
+                                                                <a href={previewUrl} target="_blank" rel="noreferrer" className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}>Preview</a>
+                                                                <button className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20" onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(c.hook || ''); }}>Copy Hook</button>
+                                                                <button className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20" onClick={(e) => { e.stopPropagation(); }}>Save Clip</button>
+									</div>
+								</div>
+						</div>
+                                                );
+                                            })()}
 								</div>
 							)}
 							
@@ -368,38 +400,7 @@ export default function Page() {
                                         <p className="text-white/80 text-sm">{c.description}</p>
                                         <p className="text-cyan-300 text-xs">Hook: {c.hook}</p>
 								</div>
-
-                                    {/* Hover overlay: tags + CTA strip */}
-                                    {(() => {
-                                        const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : '#';
-                                        const tags: string[] = [];
-                                        const s = Number((c as any).score) || 0;
-                                        if ((c.hook || '').length > 0) tags.push('Strong Hook');
-                                        if (c.description?.toLowerCase().includes('surpris')) tags.push('Surprise');
-                                        if (c.description?.toLowerCase().includes('tip') || c.description?.toLowerCase().includes('how')) tags.push('Value');
-                                        if (s >= 80) tags.push('High Virality');
-                                        return (
-                                            <div className="pointer-events-none absolute inset-0 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                <div className="absolute inset-0 bg-black/65 backdrop-blur-sm rounded-2xl" />
-                                                <div className="absolute inset-0 p-5 flex flex-col justify-between">
-                                                    <div>
-                                                        <p className="text-xs uppercase tracking-wider text-white/60">Why this clip hits</p>
-                                                        <p className="mt-1 text-sm text-white/90 line-clamp-3">{(c as any).scoreReasons || c.description}</p>
-                                                        <div className="mt-3 flex flex-wrap gap-1">
-                                                            {tags.map((t) => (
-                                                                <span key={t} className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/80 border border-white/15">{t}</span>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <a href={previewUrl} target="_blank" rel="noreferrer" className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}>Preview</a>
-                                                        <button className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20" onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(c.hook || ''); }}>Copy Hook</button>
-                                                        <button className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20" onClick={(e) => { e.stopPropagation(); }}>Save Clip</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
+								
 							</div>
                                 </MagicBentoBorder>
                             );
