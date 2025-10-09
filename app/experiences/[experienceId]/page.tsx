@@ -322,7 +322,8 @@ export default function Page() {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
                             return (
-                                <div key={`${c.title}-${i}`} className="relative bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
+                                <MagicBentoBorder key={`${c.title}-${i}`} className="rounded-2xl" glowColor="50, 227, 63" borderWidth={2} borderRadius={16} enableTilt={true} enableMagnetism={true}>
+                                <div className="relative bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
                                     {/* Virality badge in top-right */}
                                     {typeof (c as any).score === 'number' && (() => {
                                         const s = Number((c as any).score) || 0;
@@ -368,6 +369,7 @@ export default function Page() {
                                         <p className="text-cyan-300 text-xs">Hook: {c.hook}</p>
 								</div>
 							</div>
+                                </MagicBentoBorder>
                             );
                         })}
 						</div>
