@@ -32,6 +32,7 @@ export default function CustomVideoPlayer({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const loadGuardTimeoutRef = useRef<any>(null);
 
   // Load YouTube API
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function CustomVideoPlayer({
           iv_load_policy: 3,
           fs: 0,
           disablekb: 1,
+          playsinline: 1,
           mute: 1, // Start muted
           enablejsapi: 1,
           origin: window.location.origin,
@@ -88,6 +90,8 @@ export default function CustomVideoPlayer({
               event.target.seekTo(start, true);
               event.target.pauseVideo();
             }
+            // Any valid state change implies the iframe is rendered
+            if (!isLoaded) setIsLoaded(true);
           },
         },
       });
@@ -100,8 +104,26 @@ export default function CustomVideoPlayer({
         playerRef.current.destroy();
         playerRef.current = null;
       }
+      if (loadGuardTimeoutRef.current) {
+        clearTimeout(loadGuardTimeoutRef.current);
+        loadGuardTimeoutRef.current = null;
+      }
     };
   }, [videoId, start, end]);
+
+  // Fallback guard: if onReady doesn't fire due to network blockers, mark loaded after 3s
+  useEffect(() => {
+    if (isLoaded) return;
+    loadGuardTimeoutRef.current = setTimeout(() => {
+      if (!isLoaded) setIsLoaded(true);
+    }, 3000);
+    return () => {
+      if (loadGuardTimeoutRef.current) {
+        clearTimeout(loadGuardTimeoutRef.current);
+        loadGuardTimeoutRef.current = null;
+      }
+    };
+  }, [isLoaded]);
 
   // Handle hover enter - smooth unmute and play
   const handleMouseEnter = () => {
