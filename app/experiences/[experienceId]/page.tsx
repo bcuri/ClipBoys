@@ -327,14 +327,21 @@ export default function Page() {
                                     {typeof (c as any).score === 'number' && (() => {
                                         const s = Number((c as any).score) || 0;
                                         const gradient = s >= 80
-                                          ? 'linear-gradient(90deg, #34D399, #10B981, #34D399)'
+                                          ? 'linear-gradient(90deg, #34D399, #10B981)'
                                           : s >= 60
-                                          ? 'linear-gradient(90deg, #7DD3FC, #22D3EE, #7DD3FC)'
+                                          ? 'linear-gradient(90deg, #7DD3FC, #22D3EE)'
                                           : s >= 40
-                                          ? 'linear-gradient(90deg, #FBBF24, #F59E0B, #FBBF24)'
-                                          : 'linear-gradient(90deg, #F87171, #EF4444, #F87171)';
+                                          ? 'linear-gradient(90deg, #FBBF24, #F59E0B)'
+                                          : 'linear-gradient(90deg, #F87171, #EF4444)';
+                                        const glow = s >= 80
+                                          ? '0 0 18px rgba(16,185,129,0.55)'
+                                          : s >= 60
+                                          ? '0 0 18px rgba(34,211,238,0.55)'
+                                          : s >= 40
+                                          ? '0 0 18px rgba(245,158,11,0.55)'
+                                          : '0 0 18px rgba(239,68,68,0.55)';
                                         return (
-                                            <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black animate-gradient-x" style={{ background: gradient }}>
+                                            <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black" style={{ background: gradient, boxShadow: glow }}>
                                                 Virality {s}%
                                             </span>
                                         );
