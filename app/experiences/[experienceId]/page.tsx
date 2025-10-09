@@ -334,7 +334,7 @@ export default function Page() {
                                           ? 'linear-gradient(90deg, #FBBF24, #F59E0B, #FBBF24)'
                                           : 'linear-gradient(90deg, #F87171, #EF4444, #F87171)';
                                         return (
-                                            <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black gradient-animate" style={{ background: gradient }}>
+                                            <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black animate-gradient-x" style={{ background: gradient }}>
                                                 Virality {s}%
                                             </span>
                                         );
@@ -353,9 +353,9 @@ export default function Page() {
                                                 className="absolute inset-0 w-full h-full object-cover"
                                             />
                                             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40" />
-                                        </div>
-                                    )}
-                                    
+								</div>
+							)}
+							
                                     <div className="space-y-3">
                                         <p className="text-white/80 text-sm">{c.description}</p>
                                         <p className="text-cyan-300 text-xs">Hook: {c.hook}</p>

@@ -337,7 +337,7 @@ export default function Page() {
                                           ? 'linear-gradient(90deg, #FBBF24, #F59E0B, #FBBF24)'
                                           : 'linear-gradient(90deg, #F87171, #EF4444, #F87171)';
                                         return (
-                                            <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black gradient-animate" style={{ background: gradient }}>
+                                            <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black animate-gradient-x" style={{ background: gradient }}>
                                                 Virality {s}%
                                             </span>
                                         );
