@@ -328,6 +328,7 @@ export default function Page() {
 								const maxScore = Math.max(...clips.map(clip => Number((clip as any).score) || 0));
 								const firstMaxIndex = clips.findIndex(clip => Number((clip as any).score) || 0 === maxScore);
 								const isMVP = i === firstMaxIndex && currentScore === maxScore && currentScore > 0;
+								const displayScore = isMVP ? Math.min(currentScore + 1, 100) : currentScore;
                             return (
                                 <MagicBentoBorder 
 									key={`${c.title}-${i}`} 
@@ -351,7 +352,7 @@ export default function Page() {
                                         if (isMVP) {
                                             gradient = 'linear-gradient(90deg, #8B5CF6, #A855F7, #C084FC)';
                                             glow = '0 0 25px rgba(139, 92, 246, 0.8)';
-                                            text = `MVP ${s}%`;
+                                            text = `MVP ${displayScore}%`;
                                         } else {
                                             gradient = s >= 80
                                               ? 'linear-gradient(90deg, #34D399, #10B981)'
