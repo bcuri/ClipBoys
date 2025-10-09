@@ -4,7 +4,6 @@ import { useState } from "react";
 import { CheckCircle2, Play, ExternalLink } from "lucide-react";
 import { fetchTranscript, requestClips, type GenerateClipsResponse } from "../lib/llm";
 import { Vortex } from "../components/ui/vortex";
-import { Card } from "../components/ui/apple-cards-carousel";
 import MagicBentoBorder from "../components/ui/MagicBentoBorder";
 import { WavyBackground } from "../components/ui/wavy-background";
 import Typewriter from "../components/ui/Typewriter";
@@ -323,29 +322,30 @@ export default function Page() {
                         {clips.map((c, i) => {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
-								const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : "#";
-								const thumb = videoData?.videoId ? `https://img.youtube.com/vi/${videoData.videoId}/hqdefault.jpg` : "https://assets.aceternity.com/macbook.png";
+								const embedUrl = videoData?.videoId ? `https://www.youtube.com/embed/${videoData.videoId}?start=${start}&end=${end}&autoplay=0&controls=1&modestbranding=1&rel=0&showinfo=0` : "#";
                             return (
-                                <div key={`${c.title}-${i}`}>
-                                    <Card
-                                        index={i}
-                                        card={{
-                                            src: thumb,
-                                            title: c.title,
-                                            category: `${start}s → ${end}s`,
-                                            videoUrl: previewUrl,
-                                            videoId: videoData?.videoId,
-                                            startSec: start,
-                                            endSec: end,
-                                            content: (
-                                                <div className="space-y-4">
-                                                    <p className="text-neutral-700 dark:text-neutral-200 text-base md:text-lg font-sans">{c.description}</p>
-                                                    <p className="text-cyan-600 dark:text-cyan-300 text-sm md:text-base font-sans">Hook: {c.hook}</p>
-                                                    <a href={previewUrl} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-black" style={{ background: "linear-gradient(90deg, #66CCFF 0%, #22c83c 50%, #06B6D4 100%)" }}>Preview</a>
-                                                </div>
-                                            ),
-                                        }}
-                                    />
+                                <div key={`${c.title}-${i}`} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6">
+                                    <div className="mb-4">
+                                        <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
+                                        <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
+                                    </div>
+                                    
+                                    {/* Simple YouTube iframe */}
+                                    <div className="relative w-full mb-4" style={{ paddingBottom: '56.25%' /* 16:9 Aspect Ratio */ }}>
+                                        <iframe
+                                            className="absolute top-0 left-0 w-full h-full rounded-xl"
+                                            src={embedUrl}
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            title={c.title}
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-3">
+                                        <p className="text-white/80 text-sm">{c.description}</p>
+                                        <p className="text-cyan-300 text-xs">Hook: {c.hook}</p>
+                                    </div>
                                 </div>
                             );
                         })}

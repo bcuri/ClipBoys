@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CheckCircle2, Play, ExternalLink } from "lucide-react";
 import { Vortex } from "../../../components/ui/vortex";
 import { fetchTranscript, requestClips, type GenerateClipsResponse } from "../../../lib/llm";
@@ -21,6 +21,8 @@ export default function Page() {
 	const [clips, setClips] = useState<GenerateClipsResponse["clips"] | null>(null);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [generationTime, setGenerationTime] = useState<number>(0);
+
+	const clipsSectionRef = useRef<HTMLDivElement>(null); // Ref for scrolling
 
 	// YouTube URL validation
 	const isValidYouTubeUrl = (url: string) => {
@@ -43,32 +45,29 @@ export default function Page() {
 		
 		setIsProcessing(true);
 		
-		try {
-			const videoId = extractVideoId(youtubeUrl);
-			let title = "Video";
-			if (videoId) {
-				try {
-					const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-					if (res.ok) {
-						const data = await res.json();
-						title = data?.title || title;
-					}
-				} catch {}
+		const videoId = extractVideoId(youtubeUrl);
+		if (videoId) {
+			try {
+				const oembedResponse = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+				const oembedData = await oembedResponse.json();
 
 				setVideoData({
-					title,
+					title: oembedData.title || "Video",
 					thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-					duration: "10:30",
-					videoId
+					duration: "N/A", // Duration is not directly available from oEmbed
+					videoId: videoId
 				});
 				setVideoRecognized(true);
+			} catch (error) {
+				console.error("Error fetching video data:", error);
+				alert("Failed to fetch video data. Please check the URL.");
+				setVideoRecognized(false);
 			}
-		} finally {
-			setIsProcessing(false);
 		}
+		setIsProcessing(false);
 	};
 
-const handleGenerateClips = () => {
+	const handleGenerateClips = () => {
 		if (!videoData?.videoId) return;
 		setIsGenerating(true);
 		setClips(null);
@@ -80,18 +79,18 @@ const handleGenerateClips = () => {
 				setClips(out.clips);
 				const endTime = Date.now();
 				setGenerationTime(Math.round((endTime - startTime) / 1000));
-                setTimeout(() => {
-                    try {
-                        const el = document.getElementById("generated-title");
-                        el && el.scrollIntoView({ behavior: "smooth", block: "center" });
-                    } catch {}
-                }, 50);
+				setTimeout(() => {
+					try {
+						const el = clipsSectionRef.current;
+						el && el.scrollIntoView({ behavior: "smooth", block: "start" });
+					} catch {}
+				}, 50);
 			})
 			.catch(() => {
 				alert("Unable to generate clips for this video.");
 			})
 			.finally(() => setIsGenerating(false));
-};
+	};
 
 	return (
 		<div className="min-h-screen overflow-x-hidden overflow-y-auto">
@@ -128,15 +127,15 @@ const handleGenerateClips = () => {
 			</div>
 
 				{/* Hero Section */}
-				<div className="mx-auto max-w-6xl px-4 pt-16 pb-8 text-center">
+				<div className="mx-auto max-w-6xl px-4 pt-20 pb-8 text-center">
 				<h1
 					className="brand-body tracking-tight mb-8 animate-fade-in"
 					style={{ fontSize: "56px", lineHeight: 1.1, display: "block", color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
 				>
 					Create high‑performing clips in seconds
-			</h1>
-					<p className="brand-body text-white/90 text-2xl md:text-3xl max-w-3xl mx-auto font-semibold leading-snug animate-fade-in mb-12">
-						Experience the future of clipping
+				</h1>
+				<p className="brand-body text-white/90 text-2xl md:text-3xl max-w-3xl mx-auto font-semibold leading-snug animate-fade-in mb-12">
+					Experience the future of clipping
 					</p>
 
 					{/* YouTube URL Input Section */}
@@ -200,7 +199,7 @@ const handleGenerateClips = () => {
 										>
 											{isProcessing ? (
 												<>
-													<div className="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent mr-2"></div>
+													<span className="loader mr-3" />
 													Processing Video...
 												</>
 											) : (
@@ -209,7 +208,7 @@ const handleGenerateClips = () => {
 													Process YouTube Video
 												</>
 											)}
-								</button>
+										</button>
 									</div>
 								</>
 							) : (
@@ -236,10 +235,10 @@ const handleGenerateClips = () => {
 													<span>Duration: {videoData?.duration}</span>
 													<span>•</span>
 													<span>ID: {videoData?.videoId}</span>
-									</div>
+								</div>
 								</div>
 							</div>
-					</div>
+						</div>
 
 									{/* Generate Clips Button */}
 									<button
@@ -262,19 +261,18 @@ const handleGenerateClips = () => {
 											e.currentTarget.style.background = 'linear-gradient(90deg, #66CCFF 0%, #22c83c 50%, #06B6D4 100%)';
 										}}
 									>
-							{isGenerating ? (
-								<>
-									<span className="loader mr-3" />
-									Generating Clips...
-								</>
-							) : (
+										{isGenerating ? (
+											<>
+												<span className="loader mr-3" />
+												Generating Clips...
+											</>
+										) : (
 											<>
 												<Play className="h-5 w-5 mr-2" style={{ color: '#000' }} />
 												Generate Clips
 											</>
 										)}
-									</button>
-
+								</button>
 									
 									{/* Back Button */}
 							<button
@@ -282,6 +280,7 @@ const handleGenerateClips = () => {
 											setVideoRecognized(false);
 											setVideoData(null);
 											setYoutubeUrl("");
+											setClips(null); // Clear clips when going back
 										}}
 										className="w-full mt-3 text-white/60 hover:text-white transition-colors duration-200 text-sm"
 									>
@@ -290,8 +289,8 @@ const handleGenerateClips = () => {
 								</>
 							)}
 						</MagicBentoBorder>
-								</div>
-							</div>
+					</div>
+				</div>
 			</Vortex>
 						</div>
 
@@ -307,7 +306,7 @@ const handleGenerateClips = () => {
 						blur={8}
 						speed="fast"
 					>
-					<div id="generated-title" className="w-full flex items-center justify-center mb-12">
+					<div ref={clipsSectionRef} className="w-full flex items-center justify-center mb-12">
 						<Typewriter
 							text={`Generated ${clips?.length || 0} clips in ${generationTime} seconds`}
 							speedMs={20}
@@ -316,37 +315,38 @@ const handleGenerateClips = () => {
 							replayKey={`${clips?.length || 0}-${generationTime}`}
 						/>
 					</div>
-                    <div id="generated-clips" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-							{clips.map((c, i) => {
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {clips.map((c, i) => {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
-								const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : "#";
-								const thumb = videoData?.videoId ? `https://img.youtube.com/vi/${videoData.videoId}/hqdefault.jpg` : "https://assets.aceternity.com/macbook.png";
-								return (
-									<div key={`${c.title}-${i}`}>
-										<Card
-											index={i}
-											card={{
-												src: thumb,
-												title: c.title,
-												category: `${start}s → ${end}s`,
-												videoUrl: previewUrl,
-												videoId: videoData?.videoId,
-												startSec: start,
-												endSec: end,
-												content: (
-													<div className="space-y-4">
-														<p className="text-neutral-700 dark:text-neutral-200 text-base md:text-lg font-sans">{c.description}</p>
-													<p className="text-cyan-600 dark:text-cyan-300 text-sm md:text-base font-sans">Hook: {c.hook}</p>
-													<a href={previewUrl} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-black" style={{ background: "linear-gradient(90deg, #66CCFF 0%, #22c83c 50%, #06B6D4 100%)" }}>Preview</a>
-						</div>
-											),
-										}}
-										/>
-									</div>
-								);
-							})}
-					</div>
+								const embedUrl = videoData?.videoId ? `https://www.youtube.com/embed/${videoData.videoId}?start=${start}&end=${end}&autoplay=0&controls=1&modestbranding=1&rel=0&showinfo=0` : "#";
+                            return (
+                                <div key={`${c.title}-${i}`} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6">
+                                    <div className="mb-4">
+                                        <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
+                                        <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
+                                    </div>
+                                    
+                                    {/* Simple YouTube iframe */}
+                                    <div className="relative w-full mb-4" style={{ paddingBottom: '56.25%' /* 16:9 Aspect Ratio */ }}>
+                                        <iframe
+                                            className="absolute top-0 left-0 w-full h-full rounded-xl"
+                                            src={embedUrl}
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            title={c.title}
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-3">
+                                        <p className="text-white/80 text-sm">{c.description}</p>
+                                        <p className="text-cyan-300 text-xs">Hook: {c.hook}</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
 					</WavyBackground>
 				</div>
 			)}
