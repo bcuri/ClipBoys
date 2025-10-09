@@ -378,11 +378,11 @@ export default function Page() {
                                                             <div>
                                                                 <p className="text-[10px] uppercase tracking-wider text-white/60">Why this clip hits</p>
                                                                 <p className="mt-1 text-sm text-white/90 line-clamp-2">{(c as any).scoreReasons || c.description}</p>
-                                                                <div className="mt-2 flex flex-wrap gap-1">
+                                                                <div className="mt-2 flex flex-wrap gap-1.5">
                                                                     {tags.map((t) => (
-                                                                        <span key={t} className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/80 border border-white/15">{t}</span>
-									))}
-								</div>
+                                                                        <span key={t} className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80 border border-white/15">{t}</span>
+                                                                    ))}
+                                                                </div>
 							</div>
                                                             <div className="flex items-center justify-between gap-2">
                                                                 <a href={previewUrl} target="_blank" rel="noreferrer" className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}>Preview</a>

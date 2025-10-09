@@ -15,13 +15,16 @@ Scoring rubric (weight ~ sum to 100):
 - Visual/aural cues (0-10): references to visuals/sfx, voice energy, emphasis.
 - Shareability (0-10): quotable lines, practical takeaway, novelty.
 
+IMPORTANT: Use varied, realistic scores like 23, 47, 68, 84, 91, etc. - NOT just multiples of 5 or 10.
+Make scores feel authentic and nuanced based on the actual content quality.
+
 Return JSON only with: { "clips": [{
   "title": string,
   "start": number,
   "end": number,
   "description": string,
   "hook": string,
-  "score": number,            // 0-100 integer
+  "score": number,            // 0-100 integer (varied, realistic scores)
   "scoreReasons": string      // 1 sentence rationale
 }] }`;
 
