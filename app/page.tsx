@@ -328,11 +328,21 @@ export default function Page() {
                                 <div key={`${c.title}-${i}`} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
                                     <div className="mb-4 flex items-start justify-between">
                                         <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
-                                        {typeof (c as any).score === 'number' && (
-                                            <span className="ml-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #66CCFF 0%, #22c83c 50%, #06B6D4 100%)' }}>
-                                                {(c as any).score}%
-                                            </span>
-                                        )}
+                                        {typeof (c as any).score === 'number' && (() => {
+                                            const s = Number((c as any).score) || 0;
+                                            const gradient = s >= 80
+                                              ? 'linear-gradient(90deg, #34D399, #10B981, #34D399)'
+                                              : s >= 60
+                                              ? 'linear-gradient(90deg, #7DD3FC, #22D3EE, #7DD3FC)'
+                                              : s >= 40
+                                              ? 'linear-gradient(90deg, #FBBF24, #F59E0B, #FBBF24)'
+                                              : 'linear-gradient(90deg, #F87171, #EF4444, #F87171)';
+                                            return (
+                                                <span className="ml-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black gradient-animate" style={{ background: gradient }}>
+                                                    Virality {s}%
+                                                </span>
+                                            );
+                                        })()}
                                         <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
 								</div>
                                     {/* Thumbnail preview for the clip */}
