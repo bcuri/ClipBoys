@@ -3,18 +3,27 @@ import { NextRequest, NextResponse } from "next/server";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
-const systemPrompt = `You are a short-form video editor AI.
+const systemPrompt = `You are a short-form video editor AI specialized in TikTok/Reels virality.
 Given a YouTube transcript with timestamps, propose 5-10 high-impact short-form clips.
-Return JSON with an array of clips. Each clip should have:
-- title: punchy title (<= 60 chars)
-- start: seconds (number)
-- end: seconds (number)
-- description: 1-2 lines why it's engaging
-- hook: a strong opening hook text (<= 100 chars)
-Prefer moments with:
-- clear hooks, punchlines, surprises, answers, contrarian insights
-- self-contained context (avoid starting mid-sentence if confusing)
-Output strictly JSON: { "clips": Clip[] }`;
+For EACH clip, also compute a virality score between 0 and 100 and a brief rationale.
+
+Scoring rubric (weight ~ sum to 100):
+- Hook strength (0-30): clear curiosity gap, shock, controversy, payoff within 3s.
+- Emotional charge (0-20): surprise, humor, anger, awe.
+- Clarity/standalone value (0-15): can be understood without full context.
+- Pacing (0-15): few filler words, quick progression, no dead air.
+- Visual/aural cues (0-10): references to visuals/sfx, voice energy, emphasis.
+- Shareability (0-10): quotable lines, practical takeaway, novelty.
+
+Return JSON only with: { "clips": [{
+  "title": string,
+  "start": number,
+  "end": number,
+  "description": string,
+  "hook": string,
+  "score": number,            // 0-100 integer
+  "scoreReasons": string      // 1 sentence rationale
+}] }`;
 
 export async function POST(req: NextRequest) {
   try {

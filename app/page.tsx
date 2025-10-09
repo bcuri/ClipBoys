@@ -326,8 +326,13 @@ export default function Page() {
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
                             return (
                                 <div key={`${c.title}-${i}`} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
-                                    <div className="mb-4">
+                                    <div className="mb-4 flex items-start justify-between">
                                         <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
+                                        {typeof (c as any).score === 'number' && (
+                                            <span className="ml-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #66CCFF 0%, #22c83c 50%, #06B6D4 100%)' }}>
+                                                {(c as any).score}%
+                                            </span>
+                                        )}
                                         <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
 								</div>
                                     {/* Thumbnail preview for the clip */}

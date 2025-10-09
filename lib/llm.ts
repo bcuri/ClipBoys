@@ -4,6 +4,8 @@ export interface ClipProposal {
   end: number;
   description: string;
   hook: string;
+  score?: number; // 0-100 virality score
+  scoreReasons?: string; // brief rationale
 }
 
 export interface GenerateClipsResponse {
