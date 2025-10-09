@@ -321,29 +321,53 @@ export default function Page() {
                         {clips.map((c, i) => {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
+								const currentScore = Number((c as any).score) || 0;
+								const maxScore = Math.max(...clips.map(clip => Number((clip as any).score) || 0));
+								const isMVP = currentScore === maxScore && currentScore > 0;
                             return (
-                                <MagicBentoBorder key={`${c.title}-${i}`} className="rounded-2xl" glowColor="50, 227, 63" borderWidth={2} borderRadius={16} enableTilt={true} enableMagnetism={true}>
+                                <MagicBentoBorder 
+									key={`${c.title}-${i}`} 
+									className="rounded-2xl" 
+									glowColor={isMVP ? "147, 51, 234" : "50, 227, 63"} 
+									borderWidth={isMVP ? 3 : 2} 
+									borderRadius={16} 
+									enableTilt={true} 
+									enableMagnetism={true}
+								>
                                 <div className="relative group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
                                     {/* Virality badge in top-right */}
                                     {typeof (c as any).score === 'number' && (() => {
                                         const s = Number((c as any).score) || 0;
-                                        const gradient = s >= 80
-                                          ? 'linear-gradient(90deg, #34D399, #10B981)'
-                                          : s >= 60
-                                          ? 'linear-gradient(90deg, #7DD3FC, #22D3EE)'
-                                          : s >= 40
-                                          ? 'linear-gradient(90deg, #FBBF24, #F59E0B)'
-                                          : 'linear-gradient(90deg, #F87171, #EF4444)';
-                                        const glow = s >= 80
-                                          ? '0 0 18px rgba(16,185,129,0.55)'
-                                          : s >= 60
-                                          ? '0 0 18px rgba(34,211,238,0.55)'
-                                          : s >= 40
-                                          ? '0 0 18px rgba(245,158,11,0.55)'
-                                          : '0 0 18px rgba(239,68,68,0.55)';
+                                        const currentScore = Number((c as any).score) || 0;
+                                        const maxScore = Math.max(...clips.map(clip => Number((clip as any).score) || 0));
+                                        const isMVP = currentScore === maxScore && currentScore > 0;
+                                        
+                                        let gradient, glow, text;
+                                        if (isMVP) {
+                                            gradient = 'linear-gradient(90deg, #8B5CF6, #A855F7, #C084FC)';
+                                            glow = '0 0 25px rgba(139, 92, 246, 0.8)';
+                                            text = 'MVP';
+                                        } else {
+                                            gradient = s >= 80
+                                              ? 'linear-gradient(90deg, #34D399, #10B981)'
+                                              : s >= 60
+                                              ? 'linear-gradient(90deg, #7DD3FC, #22D3EE)'
+                                              : s >= 40
+                                              ? 'linear-gradient(90deg, #FBBF24, #F59E0B)'
+                                              : 'linear-gradient(90deg, #F87171, #EF4444)';
+                                            glow = s >= 80
+                                              ? '0 0 18px rgba(16,185,129,0.55)'
+                                              : s >= 60
+                                              ? '0 0 18px rgba(34,211,238,0.55)'
+                                              : s >= 40
+                                              ? '0 0 18px rgba(245,158,11,0.55)'
+                                              : '0 0 18px rgba(239,68,68,0.55)';
+                                            text = `Virality ${s}%`;
+                                        }
+                                        
                                         return (
                                             <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black" style={{ background: gradient, boxShadow: glow }}>
-                                                Virality {s}%
+                                                {text}
                                             </span>
                                         );
                                     })()}
