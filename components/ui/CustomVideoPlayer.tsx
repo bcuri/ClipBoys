@@ -63,17 +63,21 @@ export default function CustomVideoPlayer({
           start: start,
           end: end,
           autoplay: 1,
-          controls: 1,
+          controls: 0, // Hide all controls
           modestbranding: 1,
           rel: 0,
           showinfo: 0,
-          iv_load_policy: 3,
-          fs: 0,
-          disablekb: 1,
+          iv_load_policy: 3, // Hide annotations
+          fs: 0, // Hide fullscreen button
+          disablekb: 1, // Disable keyboard controls
           playsinline: 1,
           mute: 1, // Start muted
           enablejsapi: 1,
           origin: window.location.origin,
+          cc_load_policy: 0, // Hide closed captions
+          hl: 'en', // Language
+          cc_lang_pref: 'en',
+          widget_referrer: window.location.href,
         },
         events: {
           onReady: (event: any) => {
@@ -164,6 +168,10 @@ export default function CustomVideoPlayer({
       <div 
         ref={containerRef}
         className="absolute top-0 left-0 w-full h-full rounded-xl"
+        style={{
+          // Hide any remaining YouTube UI elements
+          overflow: 'hidden'
+        }}
       />
       
       {/* Loading state */}

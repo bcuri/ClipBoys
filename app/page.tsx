@@ -22,6 +22,7 @@ export default function Page() {
 	const [clips, setClips] = useState<GenerateClipsResponse["clips"] | null>(null);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [generationTime, setGenerationTime] = useState<number>(0);
+    const [activeClipIndex, setActiveClipIndex] = useState<number | null>(null);
 
 	// YouTube URL validation
 	const isValidYouTubeUrl = (url: string) => {
@@ -324,11 +325,11 @@ export default function Page() {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
                             return (
-                                <div key={`${c.title}-${i}`} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6">
+                                <div key={`${c.title}-${i}`} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
                                     <div className="mb-4">
                                         <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
                                         <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
-                                    </div>
+								</div>
                                     
                                     {/* Custom Video Player */}
                                     {videoData?.videoId && (
@@ -348,7 +349,38 @@ export default function Page() {
                                 </div>
                             );
                         })}
-                    </div>
+								</div>
+								
+                    {/* Simple Modal Player */}
+                    {activeClipIndex !== null && videoData?.videoId && (
+                        (() => {
+                            const c = clips[activeClipIndex]!;
+                            const start = Math.max(0, Math.floor(Number(c.start) || 0));
+                            const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
+                            const embedUrl = `https://www.youtube.com/embed/${videoData.videoId}?start=${start}&end=${end}&autoplay=1&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3`;
+                            return (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+                                    <div className="relative w-full max-w-5xl mx-auto px-4">
+                                        <button className="absolute -top-10 right-0 text-white/80 hover:text-white" onClick={() => setActiveClipIndex(null)} aria-label="Close">✕</button>
+                                        <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                                            <iframe
+                                                className="absolute top-0 left-0 w-full h-full rounded-xl"
+                                                src={embedUrl}
+                                                frameBorder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                                title={c.title}
+                                            />
+                                        </div>
+                                        <div className="mt-4 text-center">
+                                            <h3 className="text-white text-lg font-semibold">{c.title}</h3>
+                                            <p className="text-white/60 text-sm">{start}s → {end}s</p>
+								</div>
+					</div>
+				</div>
+                            );
+                        })()
+                    )}
 					</WavyBackground>
 				</div>
 			)}
