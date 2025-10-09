@@ -323,7 +323,8 @@ export default function Page() {
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
 								const currentScore = Number((c as any).score) || 0;
 								const maxScore = Math.max(...clips.map(clip => Number((clip as any).score) || 0));
-								const isMVP = currentScore === maxScore && currentScore > 0;
+								const firstMaxIndex = clips.findIndex(clip => Number((clip as any).score) || 0 === maxScore);
+								const isMVP = i === firstMaxIndex && currentScore === maxScore && currentScore > 0;
                             return (
                                 <MagicBentoBorder 
 									key={`${c.title}-${i}`} 
@@ -340,13 +341,14 @@ export default function Page() {
                                         const s = Number((c as any).score) || 0;
                                         const currentScore = Number((c as any).score) || 0;
                                         const maxScore = Math.max(...clips.map(clip => Number((clip as any).score) || 0));
-                                        const isMVP = currentScore === maxScore && currentScore > 0;
+                                        const firstMaxIndex = clips.findIndex(clip => Number((clip as any).score) || 0 === maxScore);
+                                        const isMVP = i === firstMaxIndex && currentScore === maxScore && currentScore > 0;
                                         
                                         let gradient, glow, text;
                                         if (isMVP) {
                                             gradient = 'linear-gradient(90deg, #8B5CF6, #A855F7, #C084FC)';
                                             glow = '0 0 25px rgba(139, 92, 246, 0.8)';
-                                            text = 'MVP';
+                                            text = `MVP ${s}%`;
                                         } else {
                                             gradient = s >= 80
                                               ? 'linear-gradient(90deg, #34D399, #10B981)'
@@ -405,8 +407,8 @@ export default function Page() {
                                                                 <div className="mt-2 flex flex-wrap gap-1.5">
                                                                     {tags.map((t) => (
                                                                         <span key={t} className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80 border border-white/15">{t}</span>
-                                                                    ))}
-                                                                </div>
+									))}
+								</div>
 							</div>
                                                             <div className="flex items-center justify-between gap-2">
                                                                 <a href={previewUrl} target="_blank" rel="noreferrer" className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}>Preview</a>
