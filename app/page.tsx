@@ -325,26 +325,28 @@ export default function Page() {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
                             return (
-                                <div key={`${c.title}-${i}`} className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
-                                    <div className="mb-4 flex items-start justify-between">
+                                <div key={`${c.title}-${i}`} className="relative bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
+                                    {/* Virality badge in top-right */}
+                                    {typeof (c as any).score === 'number' && (() => {
+                                        const s = Number((c as any).score) || 0;
+                                        const gradient = s >= 80
+                                          ? 'linear-gradient(90deg, #34D399, #10B981, #34D399)'
+                                          : s >= 60
+                                          ? 'linear-gradient(90deg, #7DD3FC, #22D3EE, #7DD3FC)'
+                                          : s >= 40
+                                          ? 'linear-gradient(90deg, #FBBF24, #F59E0B, #FBBF24)'
+                                          : 'linear-gradient(90deg, #F87171, #EF4444, #F87171)';
+                                        return (
+                                            <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black gradient-animate" style={{ background: gradient }}>
+                                                Virality {s}%
+                                            </span>
+                                        );
+                                    })()}
+
+                                    <div className="mb-4">
                                         <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
-                                        {typeof (c as any).score === 'number' && (() => {
-                                            const s = Number((c as any).score) || 0;
-                                            const gradient = s >= 80
-                                              ? 'linear-gradient(90deg, #34D399, #10B981, #34D399)'
-                                              : s >= 60
-                                              ? 'linear-gradient(90deg, #7DD3FC, #22D3EE, #7DD3FC)'
-                                              : s >= 40
-                                              ? 'linear-gradient(90deg, #FBBF24, #F59E0B, #FBBF24)'
-                                              : 'linear-gradient(90deg, #F87171, #EF4444, #F87171)';
-                                            return (
-                                                <span className="ml-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black gradient-animate" style={{ background: gradient }}>
-                                                    Virality {s}%
-                                                </span>
-                                            );
-                                        })()}
                                         <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
-								</div>
+                                    </div>
                                     {/* Thumbnail preview for the clip */}
                                     {videoData?.videoId && (
                                         <div className="relative w-full mb-4 overflow-hidden rounded-xl" style={{ paddingBottom: '56.25%' }}>
