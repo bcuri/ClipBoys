@@ -97,16 +97,40 @@ export default function Page() {
 			.finally(() => setIsGenerating(false));
 	};
 
-	// Account modal state and functions
-	const [activeAccountTab, setActiveAccountTab] = useState("overview");
+        // Account modal state and functions
+        const [activeAccountTab, setActiveAccountTab] = useState("overview");
 
-	const accountTabs = [
-		{ id: "overview", label: "Overview", icon: User },
-		{ id: "videos", label: "My Videos", icon: Video },
-		{ id: "saved", label: "Saved Clips", icon: Heart },
-		{ id: "subscription", label: "Subscription", icon: CreditCard },
-		{ id: "settings", label: "Settings", icon: Settings },
-	];
+        const accountTabs = [
+            { id: "overview", label: "Overview", icon: User },
+            { id: "videos", label: "My Videos", icon: Video },
+            { id: "saved", label: "Saved Clips", icon: Heart },
+            { id: "subscription", label: "Subscription", icon: CreditCard },
+            { id: "settings", label: "Settings", icon: Settings },
+        ];
+
+        // Mock data for account sections
+        const mockUserData = {
+            name: "John Doe",
+            email: "john@example.com",
+            credits: 5,
+            plan: "Free",
+            joinDate: "2024-01-15",
+            totalVideos: 12,
+            totalClips: 47,
+            savedClips: 23
+        };
+
+        const mockVideos = [
+            { id: 1, title: "How to Build a React App", url: "https://youtube.com/watch?v=example1", clips: 5, date: "2024-01-20" },
+            { id: 2, title: "JavaScript Tips and Tricks", url: "https://youtube.com/watch?v=example2", clips: 8, date: "2024-01-18" },
+            { id: 3, title: "CSS Grid Tutorial", url: "https://youtube.com/watch?v=example3", clips: 3, date: "2024-01-15" }
+        ];
+
+        const mockSavedClips = [
+            { id: 1, title: "Amazing React Hook", videoTitle: "How to Build a React App", virality: 87, savedDate: "2024-01-20" },
+            { id: 2, title: "JavaScript Performance Tip", videoTitle: "JavaScript Tips and Tricks", virality: 92, savedDate: "2024-01-19" },
+            { id: 3, title: "CSS Grid Magic", videoTitle: "CSS Grid Tutorial", virality: 78, savedDate: "2024-01-18" }
+        ];
 
 	// Handle keyboard escape for modals
 	useEffect(() => {
@@ -159,7 +183,7 @@ export default function Page() {
 					{/* Card Navigation */}
 					<div className="mb-6">
 						<CardNav
-							logo="/favicon.ico"
+							logo=""
 							items={[
 								{ label: "Videos", links: [{ label: "All Videos", href: "#" }, { label: "My Clips", href: "#" }] },
 								{ label: "Contact", links: [{ label: "Support", href: "#" }, { label: "Twitter", href: "#" }] },
@@ -616,12 +640,223 @@ export default function Page() {
 							{/* Main Content Area */}
 							<div className="flex-1 p-8 overflow-y-auto">
 								<div className="max-w-4xl">
-									{/* Account content will go here - simplified for now */}
-									<div className="text-center py-20">
-										<User className="h-16 w-16 text-white/40 mx-auto mb-4" />
-										<h2 className="text-2xl font-semibold text-white mb-2">Account Dashboard</h2>
-										<p className="text-white/60">Account functionality coming soon...</p>
-									</div>
+									{activeAccountTab === "overview" && (
+										<div className="space-y-6">
+											{/* Welcome Section */}
+											<div className="text-center mb-8">
+												<div className="h-20 w-20 rounded-full bg-gradient-to-br from-cyan-400 to-green-400 flex items-center justify-center mx-auto mb-4">
+													<User className="h-10 w-10 text-black" />
+												</div>
+												<h2 className="text-3xl font-bold text-white mb-2">Welcome back, {mockUserData.name}!</h2>
+												<p className="text-white/60">{mockUserData.email}</p>
+											</div>
+
+											{/* Stats Grid */}
+											<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+												<div className="bg-white/5 rounded-xl p-6 border border-white/10">
+													<div className="flex items-center justify-between mb-2">
+														<Video className="h-6 w-6 text-cyan-400" />
+														<span className="text-2xl font-bold text-white">{mockUserData.totalVideos}</span>
+													</div>
+													<p className="text-white/60 text-sm">Videos Processed</p>
+												</div>
+												<div className="bg-white/5 rounded-xl p-6 border border-white/10">
+													<div className="flex items-center justify-between mb-2">
+														<TrendingUp className="h-6 w-6 text-green-400" />
+														<span className="text-2xl font-bold text-white">{mockUserData.totalClips}</span>
+													</div>
+													<p className="text-white/60 text-sm">Clips Generated</p>
+												</div>
+												<div className="bg-white/5 rounded-xl p-6 border border-white/10">
+													<div className="flex items-center justify-between mb-2">
+														<Heart className="h-6 w-6 text-pink-400" />
+														<span className="text-2xl font-bold text-white">{mockUserData.savedClips}</span>
+													</div>
+													<p className="text-white/60 text-sm">Saved Clips</p>
+												</div>
+											</div>
+
+											{/* Recent Activity */}
+											<div className="bg-white/5 rounded-xl p-6 border border-white/10">
+												<h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+													<Clock className="h-5 w-5" />
+													Recent Activity
+												</h3>
+												<div className="space-y-3">
+													<div className="flex items-center justify-between py-2 border-b border-white/10">
+														<div className="flex items-center gap-3">
+															<div className="h-2 w-2 rounded-full bg-green-400"></div>
+															<span className="text-white">Generated 5 clips from "React Tutorial"</span>
+														</div>
+														<span className="text-white/60 text-sm">2 hours ago</span>
+													</div>
+													<div className="flex items-center justify-between py-2 border-b border-white/10">
+														<div className="flex items-center gap-3">
+															<div className="h-2 w-2 rounded-full bg-blue-400"></div>
+															<span className="text-white">Saved clip "JavaScript Tips"</span>
+														</div>
+														<span className="text-white/60 text-sm">1 day ago</span>
+													</div>
+													<div className="flex items-center justify-between py-2">
+														<div className="flex items-center gap-3">
+															<div className="h-2 w-2 rounded-full bg-purple-400"></div>
+															<span className="text-white">Processed "CSS Grid Guide"</span>
+														</div>
+														<span className="text-white/60 text-sm">3 days ago</span>
+													</div>
+												</div>
+											</div>
+										</div>
+									)}
+
+									{activeAccountTab === "videos" && (
+										<div className="space-y-6">
+											<div className="flex items-center justify-between">
+												<h2 className="text-2xl font-bold text-white">My Videos</h2>
+												<button className="px-4 py-2 bg-gradient-to-r from-cyan-400 to-green-400 text-black rounded-lg font-semibold hover:scale-105 transition-transform">
+													Add New Video
+												</button>
+											</div>
+											<div className="grid gap-4">
+												{mockVideos.map((video) => (
+													<div key={video.id} className="bg-white/5 rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-colors">
+														<div className="flex items-center justify-between">
+															<div className="flex-1">
+																<h3 className="text-lg font-semibold text-white mb-2">{video.title}</h3>
+																<div className="flex items-center gap-4 text-sm text-white/60">
+																	<span className="flex items-center gap-1">
+																		<Video className="h-4 w-4" />
+																		{video.clips} clips
+																	</span>
+																	<span className="flex items-center gap-1">
+																		<Clock className="h-4 w-4" />
+																		{video.date}
+																	</span>
+																</div>
+															</div>
+															<div className="flex items-center gap-2">
+																<button className="px-3 py-1 bg-white/10 text-white rounded-lg text-sm hover:bg-white/20 transition-colors">
+																	View Clips
+																</button>
+																<button className="px-3 py-1 bg-gradient-to-r from-cyan-400 to-green-400 text-black rounded-lg text-sm font-semibold hover:scale-105 transition-transform">
+																	Regenerate
+																</button>
+															</div>
+														</div>
+													</div>
+												))}
+											</div>
+										</div>
+									)}
+
+									{activeAccountTab === "saved" && (
+										<div className="space-y-6">
+											<div className="flex items-center justify-between">
+												<h2 className="text-2xl font-bold text-white">Saved Clips</h2>
+												<button className="px-4 py-2 bg-gradient-to-r from-cyan-400 to-green-400 text-black rounded-lg font-semibold hover:scale-105 transition-transform">
+													Export All
+												</button>
+											</div>
+											<div className="grid gap-4">
+												{mockSavedClips.map((clip) => (
+													<div key={clip.id} className="bg-white/5 rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-colors">
+														<div className="flex items-center justify-between">
+															<div className="flex-1">
+																<h3 className="text-lg font-semibold text-white mb-2">{clip.title}</h3>
+																<p className="text-white/60 text-sm mb-2">From: {clip.videoTitle}</p>
+																<div className="flex items-center gap-4 text-sm text-white/60">
+																	<span className="flex items-center gap-1">
+																		<TrendingUp className="h-4 w-4" />
+																		Virality: {clip.virality}%
+																	</span>
+																	<span className="flex items-center gap-1">
+																		<Clock className="h-4 w-4" />
+																		{clip.savedDate}
+																	</span>
+																</div>
+															</div>
+															<div className="flex items-center gap-2">
+																<button className="px-3 py-1 bg-white/10 text-white rounded-lg text-sm hover:bg-white/20 transition-colors">
+																	<Download className="h-4 w-4" />
+																</button>
+																<button className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-sm hover:bg-red-500/30 transition-colors">
+																	Remove
+																</button>
+															</div>
+														</div>
+													</div>
+												))}
+											</div>
+										</div>
+									)}
+
+									{activeAccountTab === "subscription" && (
+										<div className="space-y-6">
+											<div className="text-center mb-8">
+												<h2 className="text-2xl font-bold text-white mb-4">Subscription Status</h2>
+												<div className="bg-white/5 rounded-xl p-8 border border-white/10 max-w-md mx-auto">
+													<div className="h-16 w-16 rounded-full bg-gradient-to-br from-cyan-400 to-green-400 flex items-center justify-center mx-auto mb-4">
+														<CreditCard className="h-8 w-8 text-black" />
+													</div>
+													<h3 className="text-xl font-semibold text-white mb-2">{mockUserData.plan} Plan</h3>
+													<p className="text-white/60 mb-4">Member since {mockUserData.joinDate}</p>
+													<div className="bg-white/10 rounded-lg p-4 mb-6">
+														<div className="flex items-center justify-between mb-2">
+															<span className="text-white">Credits Remaining</span>
+															<span className="text-2xl font-bold text-cyan-400">{mockUserData.credits}</span>
+														</div>
+														<div className="w-full bg-white/20 rounded-full h-2">
+															<div className="bg-gradient-to-r from-cyan-400 to-green-400 h-2 rounded-full" style={{ width: `${(mockUserData.credits / 10) * 100}%` }}></div>
+														</div>
+													</div>
+													<button className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-green-400 text-black rounded-lg font-semibold hover:scale-105 transition-transform">
+														Upgrade to Pro
+													</button>
+												</div>
+											</div>
+										</div>
+									)}
+
+									{activeAccountTab === "settings" && (
+										<div className="space-y-6">
+											<h2 className="text-2xl font-bold text-white">Settings</h2>
+											<div className="space-y-4">
+												<div className="bg-white/5 rounded-xl p-6 border border-white/10">
+													<h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+														<Bell className="h-5 w-5" />
+														Notifications
+													</h3>
+													<div className="space-y-3">
+														<label className="flex items-center justify-between">
+															<span className="text-white">Email notifications</span>
+															<input type="checkbox" className="rounded" defaultChecked />
+														</label>
+														<label className="flex items-center justify-between">
+															<span className="text-white">Clip generation alerts</span>
+															<input type="checkbox" className="rounded" defaultChecked />
+														</label>
+													</div>
+												</div>
+												<div className="bg-white/5 rounded-xl p-6 border border-white/10">
+													<h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+														<Shield className="h-5 w-5" />
+														Privacy & Security
+													</h3>
+													<div className="space-y-3">
+														<button className="w-full text-left px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors">
+															Change Password
+														</button>
+														<button className="w-full text-left px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors">
+															Download My Data
+														</button>
+														<button className="w-full text-left px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors">
+															Delete Account
+														</button>
+													</div>
+												</div>
+											</div>
+										</div>
+									)}
 								</div>
 							</div>
 						</div>

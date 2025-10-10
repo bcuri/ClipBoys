@@ -34,6 +34,7 @@ export default function CardNav({
 }: CardNavProps) {
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const navRef = useRef<HTMLDivElement | null>(null);
   const cardsRef = useRef<HTMLDivElement[]>([]);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
@@ -83,6 +84,10 @@ export default function CardNav({
   useLayoutEffect(() => {
     const tl = createTimeline();
     tlRef.current = tl;
+    // Ensure nav starts closed
+    gsap.set(navRef.current, { height: 60, overflow: "hidden" });
+    gsap.set(cardsRef.current, { y: 50, opacity: 0 });
+    setIsInitialized(true);
     return () => {
       tl?.kill();
       tlRef.current = null;
@@ -172,27 +177,38 @@ export default function CardNav({
         <div className="relative z-10">
         <div className="card-nav-top flex items-center justify-between px-4 py-3">
           <div
-            className={`hamburger-menu ${isHamburgerOpen ? "open" : ""} cursor-pointer select-none`}
+            className={`hamburger-menu ${isHamburgerOpen ? "open" : ""} cursor-pointer select-none transition-all duration-300 hover:scale-110`}
             onClick={toggleMenu}
             role="button"
             aria-label={isExpanded ? "Close menu" : "Open menu"}
             tabIndex={0}
             style={{ color: menuColor || "#fff" }}
           >
-            <div className="hamburger-line h-0.5 w-6 rounded bg-current" />
-            <div className="hamburger-line mt-1 h-0.5 w-6 rounded bg-current" />
+            <div className={`hamburger-line h-0.5 w-6 rounded bg-current transition-all duration-300 ${isHamburgerOpen ? 'rotate-45 translate-y-1.5' : ''}`} />
+            <div className={`hamburger-line mt-1 h-0.5 w-6 rounded bg-current transition-all duration-300 ${isHamburgerOpen ? '-rotate-45 -translate-y-1.5' : ''}`} />
           </div>
 
           <div className="logo-container">
-            <img src={logo} alt={logoAlt} className="logo h-7 w-auto" />
+            <div className="flex items-center gap-2 group">
+              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-cyan-400 to-green-400 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-cyan-400/25">
+                <div className="h-4 w-4 rounded-full bg-white/20 animate-pulse"></div>
+              </div>
+              <span className="text-white font-semibold text-lg transition-all duration-300 group-hover:text-cyan-300">ClipBoy</span>
+            </div>
           </div>
 
           <button
             onClick={onAccountClick}
-            className="card-nav-cta-button inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow transition-all hover:scale-105"
-            style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+            className="card-nav-cta-button inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl relative overflow-hidden group"
+            style={{ 
+              background: 'linear-gradient(90deg, #66CCFF 0%, #22c83c 50%, #06B6D4 100%)',
+              color: '#000',
+              boxShadow: '0 4px 15px rgba(102, 204, 255, 0.25)'
+            }}
           >
-            <User className="mr-2 h-4 w-4" /> My Account
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            <User className="mr-2 h-4 w-4 relative z-10" />
+            <span className="relative z-10">My Account</span>
           </button>
         </div>
 
