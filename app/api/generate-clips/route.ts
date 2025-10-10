@@ -1,28 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { analyzeViralTags, calculateViralityScore } from "@/lib/viral-tags";
+import { analyzeViralTags, calculateViralityScore, getQuickViralTags } from "@/lib/viral-tags";
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
-const systemPrompt = `You are a viral content expert specializing in TikTok/Instagram Reels/YouTube Shorts.
-Analyze YouTube transcripts and identify the most viral-worthy moments for short-form content.
+const systemPrompt = `Find 6-8 viral moments from YouTube transcripts for TikTok/Reels.
 
-VIRAL MOMENT CRITERIA:
-1. STRONG HOOK (0-3 seconds): Shocking reveals, controversial takes, mystery setups, before/after moments
-2. EMOTIONAL IMPACT: Hilarious, heartwarming, shocking, inspiring, or relatable content
-3. TREND ALIGNMENT: POV content, tutorials, reactions, challenges, storytimes
-4. CLEAR VALUE: Standalone content that makes sense without context
-5. QUICK PACING: No filler words, fast progression, immediate payoff
+CRITERIA: Strong hooks, emotional impact, trending formats, clear value, quick pacing.
 
-TASK: Find 6-8 viral moments from the transcript. Each clip should be 15-60 seconds long.
-
-Return JSON only: { "clips": [{
-  "title": string,           // Catchy, clickbait-style title
-  "start": number,           // Start time in seconds
-  "end": number,             // End time in seconds  
-  "description": string,     // What happens in this clip (1-2 sentences)
-  "hook": string            // Opening line that hooks viewers (first 3 seconds)
-}] }`;
+Return JSON: { "clips": [{"title": string, "start": number, "end": number, "description": string, "hook": string}] }`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,7 +22,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "OPENAI_API_KEY not set" }, { status: 500 });
     }
 
-    const userPrompt = `VIDEO ID: ${videoId}\nTRANSCRIPT:\n${transcript}\n\nFind the most viral moments. Return only JSON.`;
+    // Truncate transcript to first 3000 characters for faster processing
+    const truncatedTranscript = transcript.length > 3000 ? transcript.substring(0, 3000) + "..." : transcript;
+    const userPrompt = `VIDEO: ${videoId}\nTRANSCRIPT: ${truncatedTranscript}\n\nFind viral moments. JSON only.`;
 
     const res = await fetch(OPENAI_API_URL, {
       method: "POST",
@@ -50,8 +38,9 @@ export async function POST(req: NextRequest) {
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.3, // Lower temperature for more consistent results
-        max_tokens: 2000, // Limit tokens for faster response
+        temperature: 0.2, // Lower temperature for faster, more consistent results
+        max_tokens: 1500, // Reduced token limit for faster response
+        stream: false, // Disable streaming for now
       }),
     });
 
@@ -78,20 +67,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid LLM response" }, { status: 502 });
     }
 
-    // Enhance clips with viral tags and realistic scoring
+    // Enhance clips with viral tags and realistic scoring (optimized)
     const enhancedClips = parsed.clips.map((clip: any) => {
-      // Analyze content for viral tags
-      const viralTags = analyzeViralTags(
-        clip.description || '',
-        clip.title || '',
-        clip.hook || ''
-      );
-
+      // Quick viral tags analysis with early exit
+      const content = `${clip.title || ''} ${clip.description || ''} ${clip.hook || ''}`.toLowerCase();
+      const viralTags = getQuickViralTags(content);
+      
       // Calculate realistic virality score based on tags
       const baseScore = calculateViralityScore(viralTags);
       
-      // Add some variation for realism (±3 points)
-      const variation = (Math.random() - 0.5) * 6;
+      // Add some variation for realism (±2 points)
+      const variation = (Math.random() - 0.5) * 4;
       const finalScore = Math.max(0, Math.min(100, Math.round(baseScore + variation)));
 
       return {

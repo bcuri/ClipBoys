@@ -70,20 +70,46 @@ export const VIRAL_TAGS: ViralTag[] = [
   { name: "Multiple Angles", description: "Different camera angles or shots", weight: 4, category: 'technical' }
 ];
 
-// Function to analyze content and assign relevant tags
+// Function to analyze content and assign relevant tags (optimized)
 export function analyzeViralTags(content: string, title: string, description: string): string[] {
   const text = `${title} ${description} ${content}`.toLowerCase();
   const assignedTags: string[] = [];
 
-  // Analyze for specific patterns and assign tags
+  // Pre-compile regex patterns for better performance
+  const compiledPatterns = new Map<string, (string | RegExp)[]>();
+  
+  // Analyze for specific patterns and assign tags (optimized)
   for (const tag of VIRAL_TAGS) {
-    if (shouldAssignTag(tag, text)) {
+    if (shouldAssignTagOptimized(tag, text, compiledPatterns)) {
       assignedTags.push(tag.name);
+      // Early exit if we have enough high-weight tags
+      if (assignedTags.length >= 8) break;
     }
   }
 
-  // Limit to top 5 most relevant tags
-  return assignedTags.slice(0, 5);
+  // Sort by weight and limit to top 5 most relevant tags
+  return assignedTags
+    .map(tagName => VIRAL_TAGS.find(t => t.name === tagName))
+    .filter(Boolean)
+    .sort((a, b) => (b?.weight || 0) - (a?.weight || 0))
+    .slice(0, 5)
+    .map(tag => tag!.name);
+}
+
+function shouldAssignTagOptimized(tag: ViralTag, text: string, compiledPatterns: Map<string, (string | RegExp)[]>): boolean {
+  let patterns = compiledPatterns.get(tag.name);
+  if (!patterns) {
+    patterns = getTagPatterns(tag.name);
+    compiledPatterns.set(tag.name, patterns);
+  }
+  
+  return patterns.some(pattern => {
+    if (typeof pattern === 'string') {
+      return text.includes(pattern);
+    } else {
+      return pattern.test(text);
+    }
+  });
 }
 
 function shouldAssignTag(tag: ViralTag, text: string): boolean {
@@ -152,6 +178,39 @@ function getTagPatterns(tagName: string): (string | RegExp)[] {
   };
 
   return patterns[tagName] || [];
+}
+
+// Quick viral tags function for performance
+export function getQuickViralTags(content: string): string[] {
+  const tags: string[] = [];
+  
+  // High-priority patterns that are quick to check
+  const quickPatterns = [
+    { tag: "Shocking Reveal", patterns: ["shocking", "unexpected", "reveal", "exposed"] },
+    { tag: "Hilarious", patterns: ["funny", "hilarious", "laugh", "comedy"] },
+    { tag: "Tutorial", patterns: ["how to", "tutorial", "guide", "step by step"] },
+    { tag: "POV", patterns: ["pov", "point of view", "from my perspective"] },
+    { tag: "Life Hack", patterns: ["life hack", "hack", "trick", "tip"] },
+    { tag: "Money Tips", patterns: ["money", "finance", "budget", "saving"] },
+    { tag: "Reaction", patterns: ["reaction", "reacting", "first time"] },
+    { tag: "Storytime", patterns: ["storytime", "story", "happened to me"] },
+    { tag: "Transformation", patterns: ["transformation", "makeover", "change"] },
+    { tag: "Quick Tips", patterns: ["tips", "tricks", "hacks", "quick"] },
+    { tag: "High Energy", patterns: ["energy", "excited", "pumped", "hyped"] },
+    { tag: "Inspiring", patterns: ["inspiring", "motivational", "uplifting"] },
+    { tag: "Relatable", patterns: ["relatable", "relate", "same", "me too"] },
+    { tag: "Controversial Take", patterns: ["controversial", "unpopular opinion", "hot take"] },
+    { tag: "Before/After", patterns: ["before", "after", "transformation", "change"] }
+  ];
+
+  for (const { tag, patterns } of quickPatterns) {
+    if (patterns.some(pattern => content.includes(pattern))) {
+      tags.push(tag);
+      if (tags.length >= 5) break; // Early exit for performance
+    }
+  }
+
+  return tags;
 }
 
 // Function to calculate virality score based on tags

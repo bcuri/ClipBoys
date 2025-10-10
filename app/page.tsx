@@ -143,6 +143,27 @@ export default function Page() {
 		setClips(null);
 		const startTime = Date.now();
 		
+		// Check cache first
+		const cacheKey = `clips-${videoData.videoId}`;
+		const cached = sessionStorage.getItem(cacheKey);
+		if (cached) {
+			try {
+				const cachedData = JSON.parse(cached);
+				setClips(cachedData.clips);
+				setGenerationTime(cachedData.generationTime);
+				setIsGenerating(false);
+				setTimeout(() => {
+					try {
+						const el = document.getElementById("generated-title");
+						el && el.scrollIntoView({ behavior: "smooth", block: "center" });
+					} catch {}
+				}, 50);
+				return;
+			} catch (e) {
+				// Cache corrupted, continue with normal flow
+			}
+		}
+		
 		fetchTranscript(videoData.videoId)
 			.then(async (t) => {
 				const out = await requestClips(videoData.videoId, t.fullText || "");
@@ -152,7 +173,15 @@ export default function Page() {
 				await saveClips(out.clips);
 				
 				const endTime = Date.now();
-				setGenerationTime(Math.round((endTime - startTime) / 1000));
+				const generationTime = Math.round((endTime - startTime) / 1000);
+				setGenerationTime(generationTime);
+				
+				// Cache the result
+				sessionStorage.setItem(cacheKey, JSON.stringify({
+					clips: out.clips,
+					generationTime
+				}));
+				
 				// Scroll to the generated title so the text is readable
 				setTimeout(() => {
 					try {
