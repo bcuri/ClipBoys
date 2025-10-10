@@ -143,61 +143,26 @@ export default function Page() {
 		setClips(null);
 		const startTime = Date.now();
 		
-		// Check cache first
-		const cacheKey = `clips-${videoData.videoId}`;
-		const cached = sessionStorage.getItem(cacheKey);
-		if (cached) {
-			try {
-				const cachedData = JSON.parse(cached);
-				setClips(cachedData.clips);
-				setGenerationTime(cachedData.generationTime);
-				setIsGenerating(false);
+		fetchTranscript(videoData.videoId)
+			.then(async (t) => {
+				const out = await requestClips(videoData.videoId, t.fullText || "");
+				setClips(out.clips);
+				
+				// Save clips to database
+				await saveClips(out.clips);
+				
+				const endTime = Date.now();
+				setGenerationTime(Math.round((endTime - startTime) / 1000));
+				// Scroll to the generated title so the text is readable
 				setTimeout(() => {
 					try {
 						const el = document.getElementById("generated-title");
 						el && el.scrollIntoView({ behavior: "smooth", block: "center" });
 					} catch {}
 				}, 50);
-				return;
-			} catch (e) {
-				// Cache corrupted, continue with normal flow
-			}
-		}
-		
-		fetchTranscript(videoData.videoId)
-			.then(async (t) => {
-				try {
-					const out = await requestClips(videoData.videoId, t.fullText || "");
-					setClips(out.clips);
-					
-					// Save clips to database
-					await saveClips(out.clips);
-					
-					const endTime = Date.now();
-					const generationTime = Math.round((endTime - startTime) / 1000);
-					setGenerationTime(generationTime);
-					
-					// Cache the result
-					sessionStorage.setItem(cacheKey, JSON.stringify({
-						clips: out.clips,
-						generationTime
-					}));
-					
-					// Scroll to the generated title so the text is readable
-					setTimeout(() => {
-						try {
-							const el = document.getElementById("generated-title");
-							el && el.scrollIntoView({ behavior: "smooth", block: "center" });
-						} catch {}
-					}, 50);
-				} catch (error) {
-					console.error("Error generating clips:", error);
-					alert(`Error generating clips: ${error instanceof Error ? error.message : 'Unknown error'}`);
-				}
 			})
-			.catch((error) => {
-				console.error("Error fetching transcript or generating clips:", error);
-				alert(`Unable to generate clips for this video: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			.catch(() => {
+				alert("Unable to generate clips for this video.");
 			})
 			.finally(() => setIsGenerating(false));
 	};
@@ -517,16 +482,9 @@ export default function Page() {
                             {clips.map((c, i) => {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
-								const currentScore = Number((c as any).score) || 0;
-								
-								// Find all clips with the highest score
-								const scores = clips.map(clip => Number((clip as any).score) || 0);
-								const maxScore = Math.max(...scores);
-								const maxScoreIndices = scores.map((score, idx) => score === maxScore ? idx : -1).filter(idx => idx !== -1);
-								
-								// Always crown the first clip with max score as MVP
-								const isMVP = i === maxScoreIndices[0] && maxScore > 0;
-								const displayScore = isMVP ? Math.min(currentScore + 1, 100) : currentScore;
+								const currentScore = Number(c.score) || 0;
+								const isMVP = c.isMVP || false;
+								const displayScore = currentScore;
                             return (
                                 <MagicBentoBorder 
 									key={`${c.title}-${i}`} 
@@ -540,8 +498,8 @@ export default function Page() {
 								>
                                 <div className="relative group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
                                         {/* Virality badge in top-right */}
-                                        {typeof (c as any).score === 'number' && (() => {
-                                            const s = Number((c as any).score) || 0;
+                                        {typeof c.score === 'number' && (() => {
+                                            const s = Number(c.score) || 0;
                                             
                                             let gradient, glow, text;
                                             if (isMVP) {
@@ -590,8 +548,8 @@ export default function Page() {
                                                 {/* Hover overlay confined to thumbnail */}
                                                 {(() => {
                                                     const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : '#';
-                                                    const tags: string[] = (c as any).viralTags || [];
-                                                    const s = Number((c as any).score) || 0;
+                                                    const tags: string[] = c.viralTags || [];
+                                                    const s = Number(c.score) || 0;
                                                     if (isMVP) tags.unshift('MVP');
                                                     else if (s >= 80) tags.unshift('High Virality');
                                                 return (
@@ -634,10 +592,9 @@ export default function Page() {
 								</div>
 							)}
 							
-                                    <div className="space-y-3">
-                                        <p className="text-white/80 text-sm">{c.description}</p>
-                                        <p className="text-cyan-300 text-xs">Hook: {c.hook}</p>
-                                    </div>
+                                        <div className="space-y-3">
+                                            <p className="text-white/80 text-sm">{c.description}</p>
+                                        </div>
 
                                 </div>
                                 </MagicBentoBorder>

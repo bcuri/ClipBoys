@@ -3,9 +3,9 @@ export interface ClipProposal {
   start: number;
   end: number;
   description: string;
-  hook: string;
-  score?: number; // 0-100 virality score
-  scoreReasons?: string; // brief rationale
+  score: number; // 0-100 virality score
+  viralTags: string[]; // 2-3 tags, 4 for MVP
+  isMVP: boolean; // true for highest scoring clip
 }
 
 export interface GenerateClipsResponse {
@@ -22,14 +22,7 @@ export async function requestClips(videoId: string, transcript: string): Promise
     const detail = await res.text();
     throw new Error(`Clip generation failed: ${detail}`);
   }
-  
-  try {
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error("JSON parsing error in requestClips:", error);
-    throw new Error(`Failed to parse response: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
+  return res.json();
 }
 
 export async function fetchTranscript(videoId: string): Promise<{ fullText: string } & any> {
@@ -42,14 +35,7 @@ export async function fetchTranscript(videoId: string): Promise<{ fullText: stri
     const detail = await res.text();
     throw new Error(`Transcript fetch failed: ${detail}`);
   }
-  
-  try {
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error("JSON parsing error in fetchTranscript:", error);
-    throw new Error(`Failed to parse transcript response: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
+  return res.json();
 }
 
 

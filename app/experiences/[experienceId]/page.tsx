@@ -320,16 +320,9 @@ export default function Page() {
                             {clips.map((c, i) => {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
-								const currentScore = Number((c as any).score) || 0;
-								
-								// Find all clips with the highest score
-								const scores = clips.map(clip => Number((clip as any).score) || 0);
-								const maxScore = Math.max(...scores);
-								const maxScoreIndices = scores.map((score, idx) => score === maxScore ? idx : -1).filter(idx => idx !== -1);
-								
-								// Always crown the first clip with max score as MVP
-								const isMVP = i === maxScoreIndices[0] && maxScore > 0;
-								const displayScore = isMVP ? Math.min(currentScore + 1, 100) : currentScore;
+								const currentScore = Number(c.score) || 0;
+								const isMVP = c.isMVP || false;
+								const displayScore = currentScore;
                             return (
                                 <MagicBentoBorder 
 									key={`${c.title}-${i}`} 
@@ -343,8 +336,8 @@ export default function Page() {
 								>
                                 <div className="relative group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
                                         {/* Virality badge in top-right */}
-                                        {typeof (c as any).score === 'number' && (() => {
-                                            const s = Number((c as any).score) || 0;
+                                        {typeof c.score === 'number' && (() => {
+                                            const s = Number(c.score) || 0;
                                             
                                             let gradient, glow, text;
                                             if (isMVP) {
@@ -393,8 +386,8 @@ export default function Page() {
                                                 {/* Hover overlay confined to thumbnail */}
                                                 {(() => {
                                                     const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : '#';
-                                                    const tags: string[] = (c as any).viralTags || [];
-                                                    const s = Number((c as any).score) || 0;
+                                                    const tags: string[] = c.viralTags || [];
+                                                    const s = Number(c.score) || 0;
                                                     if (isMVP) tags.unshift('MVP');
                                                     else if (s >= 80) tags.unshift('High Virality');
                                                 return (
@@ -406,10 +399,10 @@ export default function Page() {
                                                                 <div className="mt-2 flex flex-wrap gap-1.5">
                                                                     {tags.slice(0, 6).map((t) => (
                                                                         <span key={t} className="rounded-full bg-white/10 px-2 py-1 text-xs text-white/80 border border-white/15">{t}</span>
-                                                                    ))}
-                                                                </div>
+									))}
+								</div>
                                                                 <p className="mt-3 text-xs text-white/70 line-clamp-2">{c.description}</p>
-                                                            </div>
+							</div>
                                                             <div className="flex items-center justify-between gap-2">
                                                                 <button 
                                                                     className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black transition-all" 
@@ -433,9 +426,8 @@ export default function Page() {
 								</div>
 							)}
 							
-                                    <div className="space-y-3">
-                                        <p className="text-white/80 text-sm">{c.description}</p>
-                                        <p className="text-cyan-300 text-xs">Hook: {c.hook}</p>
+                                        <div className="space-y-3">
+                                            <p className="text-white/80 text-sm">{c.description}</p>
 								</div>
 								
 							</div>

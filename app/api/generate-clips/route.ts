@@ -1,14 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { analyzeViralTags, calculateViralityScore, getQuickViralTags } from "@/lib/viral-tags";
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
-const systemPrompt = `Find 6-8 viral moments from YouTube transcripts for TikTok/Reels.
+const systemPrompt = `You are a viral content expert for TikTok/Instagram Reels/YouTube Shorts.
 
-CRITERIA: Strong hooks, emotional impact, trending formats, clear value, quick pacing.
+VIRAL TAGS (assign 2-3 per clip, 4 for MVP):
+- Shocking Reveal, Controversial Take, Mystery Setup, Before/After
+- Hilarious, Heartwarming, Shocking, Inspiring, Relatable
+- POV, Tutorial, Reaction, Challenge, Storytime, Transformation
+- Life Hack, Money Tips, Tech Review, Career Advice
+- High Energy, Visual Appeal, Quick Tips, Expert Breakdown
 
-Return JSON: { "clips": [{"title": string, "start": number, "end": number, "description": string, "hook": string}] }`;
+TASK: Find 6-8 viral moments (15-60 seconds each).
+
+Return JSON: { "clips": [{
+  "title": string,
+  "start": number,
+  "end": number,
+  "description": string,
+  "score": number,        // 0-100 realistic score
+  "viralTags": string[],  // 2-3 tags, 4 for MVP
+  "isMVP": boolean        // true for highest scoring clip
+}] }`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,9 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "OPENAI_API_KEY not set" }, { status: 500 });
     }
 
-    // Truncate transcript to first 3000 characters for faster processing
-    const truncatedTranscript = transcript.length > 3000 ? transcript.substring(0, 3000) + "..." : transcript;
-    const userPrompt = `VIDEO: ${videoId}\nTRANSCRIPT: ${truncatedTranscript}\n\nFind viral moments. JSON only.`;
+    const userPrompt = `VIDEO ID: ${videoId}\nTRANSCRIPT:\n${transcript}\n\nFind viral moments. Return only JSON.`;
 
     const res = await fetch(OPENAI_API_URL, {
       method: "POST",
@@ -38,9 +50,8 @@ export async function POST(req: NextRequest) {
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.2, // Lower temperature for faster, more consistent results
-        max_tokens: 1500, // Reduced token limit for faster response
-        stream: false, // Disable streaming for now
+        temperature: 0.4,
+        max_tokens: 2500,
       }),
     });
 
@@ -51,65 +62,24 @@ export async function POST(req: NextRequest) {
 
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content || "";
-    
-    // Log the raw response for debugging
-    console.log("Raw LLM response:", raw);
-    
     // Attempt to parse JSON from model output
     let parsed: any = null;
     try {
       parsed = JSON.parse(raw);
-    } catch (parseError) {
-      console.log("JSON parse error:", parseError);
+    } catch (_) {
       // Try to extract JSON substring
       const match = raw.match(/\{[\s\S]*\}/);
       if (match) {
-        try {
-          parsed = JSON.parse(match[0]);
-        } catch (extractError) {
-          console.log("JSON extract error:", extractError);
-          return NextResponse.json({ 
-            error: "Invalid LLM response format", 
-            detail: `Failed to parse JSON: ${raw.substring(0, 200)}...` 
-          }, { status: 502 });
-        }
-      } else {
-        return NextResponse.json({ 
-          error: "No JSON found in LLM response", 
-          detail: `Raw response: ${raw.substring(0, 200)}...` 
-        }, { status: 502 });
+        parsed = JSON.parse(match[0]);
       }
     }
 
     if (!parsed || !Array.isArray(parsed.clips)) {
-      return NextResponse.json({ 
-        error: "Invalid LLM response structure", 
-        detail: `Expected clips array, got: ${JSON.stringify(parsed)}` 
-      }, { status: 502 });
+      return NextResponse.json({ error: "Invalid LLM response" }, { status: 502 });
     }
 
-    // Enhance clips with viral tags and realistic scoring (optimized)
-    const enhancedClips = parsed.clips.map((clip: any) => {
-      // Quick viral tags analysis with early exit
-      const content = `${clip.title || ''} ${clip.description || ''} ${clip.hook || ''}`.toLowerCase();
-      const viralTags = getQuickViralTags(content);
-      
-      // Calculate realistic virality score based on tags
-      const baseScore = calculateViralityScore(viralTags);
-      
-      // Add some variation for realism (±2 points)
-      const variation = (Math.random() - 0.5) * 4;
-      const finalScore = Math.max(0, Math.min(100, Math.round(baseScore + variation)));
-
-      return {
-        ...clip,
-        score: finalScore,
-        scoreReasons: viralTags.slice(0, 3).join(', '), // Top 3 tags as reasons
-        viralTags: viralTags // Store all tags for display
-      };
-    });
-
-    return NextResponse.json({ clips: enhancedClips });
+    // Return ChatGPT's response directly - it already includes score, viralTags, isMVP
+    return NextResponse.json({ clips: parsed.clips });
   } catch (err) {
     return NextResponse.json({ error: "Failed to generate clips" }, { status: 500 });
   }

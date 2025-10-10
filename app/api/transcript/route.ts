@@ -12,15 +12,7 @@ async function fetchFromUnofficialAPI(videoId: string) {
 
   for (const url of urls) {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-      
-      const res = await fetch(url, { 
-        next: { revalidate: 3600 }, // Cache for 1 hour
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      
+      const res = await fetch(url, { next: { revalidate: 0 } });
       if (!res.ok) continue;
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
@@ -42,15 +34,7 @@ async function fetchFromJinaReader(videoId: string) {
   // Fallback: Jina AI reader scrapes page text and often returns captions-like text
   const url = `https://r.jina.ai/http://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout for fallback
-    
-    const res = await fetch(url, { 
-      next: { revalidate: 3600 }, // Cache for 1 hour
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    
+    const res = await fetch(url, { next: { revalidate: 0 } });
     if (!res.ok) return null;
     const text = await res.text();
     const cleaned = text.trim();
