@@ -24,6 +24,7 @@ export default function Page() {
 	const [generationTime, setGenerationTime] = useState<number>(0);
     const [activeClipIndex, setActiveClipIndex] = useState<number | null>(null);
     const [showAccountModal, setShowAccountModal] = useState(false);
+    const [currentUserId] = useState("demo-user-123"); // For demo purposes
 
 	// YouTube URL validation
 	const isValidYouTubeUrl = (url: string) => {
@@ -36,6 +37,66 @@ export default function Page() {
 		const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
 		const match = url.match(regex);
 		return match ? match[1] : null;
+	};
+
+	// Helper function to make API calls with user ID
+	const apiCall = async (endpoint: string, options: RequestInit = {}) => {
+		const response = await fetch(endpoint, {
+			...options,
+			headers: {
+				'Content-Type': 'application/json',
+				'x-whop-user-id': currentUserId,
+				...options.headers,
+			},
+		});
+		return response.json();
+	};
+
+	// Save video to database
+	const saveVideo = async (videoId: string, title: string, thumbnailUrl: string) => {
+		try {
+			await apiCall('/api/videos', {
+				method: 'POST',
+				body: JSON.stringify({ videoId, title, thumbnailUrl }),
+			});
+		} catch (error) {
+			console.error('Failed to save video:', error);
+		}
+	};
+
+	// Save clips to database
+	const saveClips = async (clips: any[]) => {
+		try {
+			const clipsToSave = clips.map((clip, index) => ({
+				id: `clip-${Date.now()}-${index}`,
+				videoId: videoData?.videoId || '',
+				title: clip.title,
+				description: clip.description,
+				startSec: Math.floor(Number(clip.start) || 0),
+				endSec: Math.floor(Number(clip.end) || 0),
+				score: Number((clip as any).score) || 0,
+				thumbnailUrl: `https://img.youtube.com/vi/${videoData?.videoId}/hqdefault.jpg`,
+			}));
+			
+			await apiCall('/api/clips', {
+				method: 'POST',
+				body: JSON.stringify({ clips: clipsToSave }),
+			});
+		} catch (error) {
+			console.error('Failed to save clips:', error);
+		}
+	};
+
+	// Save a clip to favorites
+	const saveClipToFavorites = async (clipId: string) => {
+		try {
+			await apiCall('/api/saved', {
+				method: 'POST',
+				body: JSON.stringify({ clipId }),
+			});
+		} catch (error) {
+			console.error('Failed to save clip:', error);
+		}
 	};
 
 	const handleProcessVideo = async () => {
@@ -58,13 +119,18 @@ export default function Page() {
 					}
 				} catch {}
 
-				setVideoData({
+				const videoInfo = {
 					title,
 					thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
 					duration: "10:30",
 					videoId
-				});
+				};
+
+				setVideoData(videoInfo);
 				setVideoRecognized(true);
+
+				// Save video to database
+				await saveVideo(videoId, videoInfo.title, videoInfo.thumbnail);
 			}
 		} finally {
 			setIsProcessing(false);
@@ -81,6 +147,10 @@ export default function Page() {
 			.then(async (t) => {
 				const out = await requestClips(videoData.videoId, t.fullText || "");
 				setClips(out.clips);
+				
+				// Save clips to database
+				await saveClips(out.clips);
+				
 				const endTime = Date.now();
 				setGenerationTime(Math.round((endTime - startTime) / 1000));
 				// Scroll to the generated title so the text is readable
@@ -99,6 +169,10 @@ export default function Page() {
 
         // Account modal state and functions
         const [activeAccountTab, setActiveAccountTab] = useState("overview");
+        const [userData, setUserData] = useState<any>(null);
+        const [userVideos, setUserVideos] = useState<any[]>([]);
+        const [savedClips, setSavedClips] = useState<any[]>([]);
+        const [isLoadingAccount, setIsLoadingAccount] = useState(false);
 
         const accountTabs = [
             { id: "overview", label: "Overview", icon: User },
@@ -108,29 +182,46 @@ export default function Page() {
             { id: "settings", label: "Settings", icon: Settings },
         ];
 
-        // Mock data for account sections
-        const mockUserData = {
-            name: "John Doe",
-            email: "john@example.com",
-            credits: 5,
-            plan: "Free",
-            joinDate: "2024-01-15",
-            totalVideos: 12,
-            totalClips: 47,
-            savedClips: 23
+        // Load user data from database
+        const loadUserData = async () => {
+            setIsLoadingAccount(true);
+            try {
+                const user = await apiCall('/api/me');
+                setUserData(user.user);
+            } catch (error) {
+                console.error('Failed to load user data:', error);
+            }
+            setIsLoadingAccount(false);
         };
 
-        const mockVideos = [
-            { id: 1, title: "How to Build a React App", url: "https://youtube.com/watch?v=example1", clips: 5, date: "2024-01-20" },
-            { id: 2, title: "JavaScript Tips and Tricks", url: "https://youtube.com/watch?v=example2", clips: 8, date: "2024-01-18" },
-            { id: 3, title: "CSS Grid Tutorial", url: "https://youtube.com/watch?v=example3", clips: 3, date: "2024-01-15" }
-        ];
+        // Load user videos
+        const loadUserVideos = async () => {
+            try {
+                const response = await apiCall('/api/videos');
+                setUserVideos(response.videos || []);
+            } catch (error) {
+                console.error('Failed to load videos:', error);
+            }
+        };
 
-        const mockSavedClips = [
-            { id: 1, title: "Amazing React Hook", videoTitle: "How to Build a React App", virality: 87, savedDate: "2024-01-20" },
-            { id: 2, title: "JavaScript Performance Tip", videoTitle: "JavaScript Tips and Tricks", virality: 92, savedDate: "2024-01-19" },
-            { id: 3, title: "CSS Grid Magic", videoTitle: "CSS Grid Tutorial", virality: 78, savedDate: "2024-01-18" }
-        ];
+        // Load saved clips
+        const loadSavedClips = async () => {
+            try {
+                const response = await apiCall('/api/clips?saved=1');
+                setSavedClips(response.clips || []);
+            } catch (error) {
+                console.error('Failed to load saved clips:', error);
+            }
+        };
+
+        // Load all account data when modal opens
+        const loadAccountData = async () => {
+            await Promise.all([
+                loadUserData(),
+                loadUserVideos(),
+                loadSavedClips()
+            ]);
+        };
 
 	// Handle keyboard escape for modals
 	useEffect(() => {
@@ -193,7 +284,10 @@ export default function Page() {
 							menuColor="#fff"
 							buttonBgColor="#66CCFF"
 							buttonTextColor="#000"
-							onAccountClick={() => setShowAccountModal(true)}
+							onAccountClick={() => {
+								setShowAccountModal(true);
+								loadAccountData();
+							}}
 						/>
 					</div>
 				<h1
@@ -485,7 +579,11 @@ export default function Page() {
 							<button
                                                                     className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black transition-all" 
                                                                     style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}
-                                                                    onClick={(e) => { e.stopPropagation(); /* add to list action */ }}
+                                                                    onClick={(e) => { 
+                                                                        e.stopPropagation(); 
+                                                                        const clipId = `clip-${Date.now()}-${i}`;
+                                                                        saveClipToFavorites(clipId);
+                                                                    }}
 							>
                                                                     <ListPlus className="h-4 w-4 mr-2" /> Add to List
 							</button>
@@ -649,8 +747,8 @@ export default function Page() {
 												<div className="h-20 w-20 rounded-full bg-gradient-to-br from-cyan-400 to-green-400 flex items-center justify-center mx-auto mb-4">
 													<User className="h-10 w-10 text-black" />
 												</div>
-												<h2 className="text-3xl font-bold text-white mb-2">Welcome back, {mockUserData.name}!</h2>
-												<p className="text-white/60">{mockUserData.email}</p>
+												<h2 className="text-3xl font-bold text-white mb-2">Welcome back, {userData?.name || 'User'}!</h2>
+												<p className="text-white/60">{userData?.email || 'user@example.com'}</p>
 											</div>
 
 											{/* Stats Grid */}
@@ -658,21 +756,21 @@ export default function Page() {
 												<div className="bg-white/5 rounded-xl p-6 border border-white/10">
 													<div className="flex items-center justify-between mb-2">
 														<Video className="h-6 w-6 text-cyan-400" />
-														<span className="text-2xl font-bold text-white">{mockUserData.totalVideos}</span>
+														<span className="text-2xl font-bold text-white">{userVideos.length}</span>
 													</div>
 													<p className="text-white/60 text-sm">Videos Processed</p>
 												</div>
 												<div className="bg-white/5 rounded-xl p-6 border border-white/10">
 													<div className="flex items-center justify-between mb-2">
 														<TrendingUp className="h-6 w-6 text-green-400" />
-														<span className="text-2xl font-bold text-white">{mockUserData.totalClips}</span>
+														<span className="text-2xl font-bold text-white">{savedClips.length}</span>
 													</div>
 													<p className="text-white/60 text-sm">Clips Generated</p>
 												</div>
 												<div className="bg-white/5 rounded-xl p-6 border border-white/10">
 													<div className="flex items-center justify-between mb-2">
 														<Heart className="h-6 w-6 text-pink-400" />
-														<span className="text-2xl font-bold text-white">{mockUserData.savedClips}</span>
+														<span className="text-2xl font-bold text-white">{savedClips.length}</span>
 													</div>
 													<p className="text-white/60 text-sm">Saved Clips</p>
 												</div>
@@ -720,33 +818,45 @@ export default function Page() {
 												</button>
 											</div>
 											<div className="grid gap-4">
-												{mockVideos.map((video) => (
-													<div key={video.id} className="bg-white/5 rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-colors">
-														<div className="flex items-center justify-between">
-															<div className="flex-1">
-																<h3 className="text-lg font-semibold text-white mb-2">{video.title}</h3>
-																<div className="flex items-center gap-4 text-sm text-white/60">
-																	<span className="flex items-center gap-1">
-																		<Video className="h-4 w-4" />
-																		{video.clips} clips
-																	</span>
-																	<span className="flex items-center gap-1">
-																		<Clock className="h-4 w-4" />
-																		{video.date}
-																	</span>
+												{isLoadingAccount ? (
+													<div className="text-center py-8">
+														<div className="animate-spin rounded-full h-8 w-8 border-2 border-cyan-400 border-t-transparent mx-auto mb-4"></div>
+														<p className="text-white/60">Loading videos...</p>
+													</div>
+												) : userVideos.length === 0 ? (
+													<div className="text-center py-8">
+														<Video className="h-12 w-12 text-white/40 mx-auto mb-4" />
+														<p className="text-white/60">No videos processed yet</p>
+													</div>
+												) : (
+													userVideos.map((video) => (
+														<div key={video.id} className="bg-white/5 rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-colors">
+															<div className="flex items-center justify-between">
+																<div className="flex-1">
+																	<h3 className="text-lg font-semibold text-white mb-2">{video.title}</h3>
+																	<div className="flex items-center gap-4 text-sm text-white/60">
+																		<span className="flex items-center gap-1">
+																			<Video className="h-4 w-4" />
+																			YouTube Video
+																		</span>
+																		<span className="flex items-center gap-1">
+																			<Clock className="h-4 w-4" />
+																			{new Date(video.createdAt).toLocaleDateString()}
+																		</span>
+																	</div>
+																</div>
+																<div className="flex items-center gap-2">
+																	<button className="px-3 py-1 bg-white/10 text-white rounded-lg text-sm hover:bg-white/20 transition-colors">
+																		View Clips
+																	</button>
+																	<button className="px-3 py-1 bg-gradient-to-r from-cyan-400 to-green-400 text-black rounded-lg text-sm font-semibold hover:scale-105 transition-transform">
+																		Regenerate
+																	</button>
 																</div>
 															</div>
-															<div className="flex items-center gap-2">
-																<button className="px-3 py-1 bg-white/10 text-white rounded-lg text-sm hover:bg-white/20 transition-colors">
-																	View Clips
-																</button>
-																<button className="px-3 py-1 bg-gradient-to-r from-cyan-400 to-green-400 text-black rounded-lg text-sm font-semibold hover:scale-105 transition-transform">
-																	Regenerate
-																</button>
-															</div>
 														</div>
-													</div>
-												))}
+													))
+												)}
 											</div>
 										</div>
 									)}
@@ -760,34 +870,46 @@ export default function Page() {
 												</button>
 											</div>
 											<div className="grid gap-4">
-												{mockSavedClips.map((clip) => (
-													<div key={clip.id} className="bg-white/5 rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-colors">
-														<div className="flex items-center justify-between">
-															<div className="flex-1">
-																<h3 className="text-lg font-semibold text-white mb-2">{clip.title}</h3>
-																<p className="text-white/60 text-sm mb-2">From: {clip.videoTitle}</p>
-																<div className="flex items-center gap-4 text-sm text-white/60">
-																	<span className="flex items-center gap-1">
-																		<TrendingUp className="h-4 w-4" />
-																		Virality: {clip.virality}%
-																	</span>
-																	<span className="flex items-center gap-1">
-																		<Clock className="h-4 w-4" />
-																		{clip.savedDate}
-																	</span>
+												{isLoadingAccount ? (
+													<div className="text-center py-8">
+														<div className="animate-spin rounded-full h-8 w-8 border-2 border-cyan-400 border-t-transparent mx-auto mb-4"></div>
+														<p className="text-white/60">Loading saved clips...</p>
+													</div>
+												) : savedClips.length === 0 ? (
+													<div className="text-center py-8">
+														<Heart className="h-12 w-12 text-white/40 mx-auto mb-4" />
+														<p className="text-white/60">No saved clips yet</p>
+													</div>
+												) : (
+													savedClips.map((clip) => (
+														<div key={clip.id} className="bg-white/5 rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-colors">
+															<div className="flex items-center justify-between">
+																<div className="flex-1">
+																	<h3 className="text-lg font-semibold text-white mb-2">{clip.title}</h3>
+																	<p className="text-white/60 text-sm mb-2">From: YouTube Video</p>
+																	<div className="flex items-center gap-4 text-sm text-white/60">
+																		<span className="flex items-center gap-1">
+																			<TrendingUp className="h-4 w-4" />
+																			Virality: {clip.score || 0}%
+																		</span>
+																		<span className="flex items-center gap-1">
+																			<Clock className="h-4 w-4" />
+																			{new Date(clip.createdAt).toLocaleDateString()}
+																		</span>
+																	</div>
+																</div>
+																<div className="flex items-center gap-2">
+																	<button className="px-3 py-1 bg-white/10 text-white rounded-lg text-sm hover:bg-white/20 transition-colors">
+																		<Download className="h-4 w-4" />
+																	</button>
+																	<button className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-sm hover:bg-red-500/30 transition-colors">
+																		Remove
+																	</button>
 																</div>
 															</div>
-															<div className="flex items-center gap-2">
-																<button className="px-3 py-1 bg-white/10 text-white rounded-lg text-sm hover:bg-white/20 transition-colors">
-																	<Download className="h-4 w-4" />
-																</button>
-																<button className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-sm hover:bg-red-500/30 transition-colors">
-																	Remove
-																</button>
-															</div>
 														</div>
-													</div>
-												))}
+													))
+												)}
 											</div>
 										</div>
 									)}
@@ -800,15 +922,15 @@ export default function Page() {
 													<div className="h-16 w-16 rounded-full bg-gradient-to-br from-cyan-400 to-green-400 flex items-center justify-center mx-auto mb-4">
 														<CreditCard className="h-8 w-8 text-black" />
 													</div>
-													<h3 className="text-xl font-semibold text-white mb-2">{mockUserData.plan} Plan</h3>
-													<p className="text-white/60 mb-4">Member since {mockUserData.joinDate}</p>
+													<h3 className="text-xl font-semibold text-white mb-2">Free Plan</h3>
+													<p className="text-white/60 mb-4">Member since {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'Recently'}</p>
 													<div className="bg-white/10 rounded-lg p-4 mb-6">
 														<div className="flex items-center justify-between mb-2">
 															<span className="text-white">Credits Remaining</span>
-															<span className="text-2xl font-bold text-cyan-400">{mockUserData.credits}</span>
+															<span className="text-2xl font-bold text-cyan-400">5</span>
 														</div>
 														<div className="w-full bg-white/20 rounded-full h-2">
-															<div className="bg-gradient-to-r from-cyan-400 to-green-400 h-2 rounded-full" style={{ width: `${(mockUserData.credits / 10) * 100}%` }}></div>
+															<div className="bg-gradient-to-r from-cyan-400 to-green-400 h-2 rounded-full" style={{ width: '50%' }}></div>
 														</div>
 													</div>
 													<button className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-green-400 text-black rounded-lg font-semibold hover:scale-105 transition-transform">
