@@ -385,13 +385,18 @@ export default function Page() {
 						/>
                                                 </div>
                     <div id="generated-clips" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {clips.map((c, i) => {
+                            {clips.map((c, i) => {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
 								const currentScore = Number((c as any).score) || 0;
-								const maxScore = Math.max(...clips.map(clip => Number((clip as any).score) || 0));
-								const firstMaxIndex = clips.findIndex(clip => Number((clip as any).score) || 0 === maxScore);
-								const isMVP = i === firstMaxIndex && currentScore === maxScore && currentScore > 0;
+								
+								// Find all clips with the highest score
+								const scores = clips.map(clip => Number((clip as any).score) || 0);
+								const maxScore = Math.max(...scores);
+								const maxScoreIndices = scores.map((score, idx) => score === maxScore ? idx : -1).filter(idx => idx !== -1);
+								
+								// Always crown the first clip with max score as MVP
+								const isMVP = i === maxScoreIndices[0] && maxScore > 0;
 								const displayScore = isMVP ? Math.min(currentScore + 1, 100) : currentScore;
                             return (
                                 <MagicBentoBorder 
@@ -405,43 +410,39 @@ export default function Page() {
 									permanentBorder={isMVP}
 								>
                                 <div className="relative group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
-                                    {/* Virality badge in top-right */}
-                                    {typeof (c as any).score === 'number' && (() => {
-                                        const s = Number((c as any).score) || 0;
-                                        const currentScore = Number((c as any).score) || 0;
-                                        const maxScore = Math.max(...clips.map(clip => Number((clip as any).score) || 0));
-                                        const firstMaxIndex = clips.findIndex(clip => Number((clip as any).score) || 0 === maxScore);
-                                        const isMVP = i === firstMaxIndex && currentScore === maxScore && currentScore > 0;
-                                        
-                                        let gradient, glow, text;
-                                        if (isMVP) {
-                                            gradient = 'linear-gradient(90deg, #8B5CF6, #A855F7, #C084FC)';
-                                            glow = '0 0 25px rgba(139, 92, 246, 0.8)';
-                                            text = `MVP ${displayScore}%`;
-                                        } else {
-                                            gradient = s >= 80
-                                              ? 'linear-gradient(90deg, #34D399, #10B981)'
-                                              : s >= 60
-                                              ? 'linear-gradient(90deg, #7DD3FC, #22D3EE)'
-                                              : s >= 40
-                                              ? 'linear-gradient(90deg, #FBBF24, #F59E0B)'
-                                              : 'linear-gradient(90deg, #F87171, #EF4444)';
-                                            glow = s >= 80
-                                              ? '0 0 18px rgba(16,185,129,0.55)'
-                                              : s >= 60
-                                              ? '0 0 18px rgba(34,211,238,0.55)'
-                                              : s >= 40
-                                              ? '0 0 18px rgba(245,158,11,0.55)'
-                                              : '0 0 18px rgba(239,68,68,0.55)';
-                                            text = `Virality ${s}%`;
-                                        }
-                                        
-                                        return (
-                                            <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black" style={{ background: gradient, boxShadow: glow }}>
-                                                {text}
-                                            </span>
-                                        );
-                                    })()}
+                                        {/* Virality badge in top-right */}
+                                        {typeof (c as any).score === 'number' && (() => {
+                                            const s = Number((c as any).score) || 0;
+                                            
+                                            let gradient, glow, text;
+                                            if (isMVP) {
+                                                gradient = 'linear-gradient(90deg, #8B5CF6, #A855F7, #C084FC)';
+                                                glow = '0 0 25px rgba(139, 92, 246, 0.8)';
+                                                text = `MVP ${displayScore}%`;
+                                            } else {
+                                                gradient = s >= 80
+                                                  ? 'linear-gradient(90deg, #34D399, #10B981)'
+                                                  : s >= 60
+                                                  ? 'linear-gradient(90deg, #7DD3FC, #22D3EE)'
+                                                  : s >= 40
+                                                  ? 'linear-gradient(90deg, #FBBF24, #F59E0B)'
+                                                  : 'linear-gradient(90deg, #F87171, #EF4444)';
+                                                glow = s >= 80
+                                                  ? '0 0 18px rgba(16,185,129,0.55)'
+                                                  : s >= 60
+                                                  ? '0 0 18px rgba(34,211,238,0.55)'
+                                                  : s >= 40
+                                                  ? '0 0 18px rgba(245,158,11,0.55)'
+                                                  : '0 0 18px rgba(239,68,68,0.55)';
+                                                text = `Virality ${s}%`;
+                                            }
+                                            
+                                            return (
+                                                <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black" style={{ background: gradient, boxShadow: glow }}>
+                                                    {text}
+                                                </span>
+                                            );
+                                        })()}
 
                                     <div className="mb-4">
                                         <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
@@ -457,15 +458,16 @@ export default function Page() {
                                             />
                                             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40" />
 
-                                            {/* Hover overlay confined to thumbnail */}
-                                            {(() => {
-                                                const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : '#';
-                                                const tags: string[] = [];
-                                                const s = Number((c as any).score) || 0;
-                                                if ((c.hook || '').length > 0) tags.push('Strong Hook');
-                                                if (c.description?.toLowerCase().includes('surpris')) tags.push('Surprise');
-                                                if (c.description?.toLowerCase().includes('tip') || c.description?.toLowerCase().includes('how')) tags.push('Value');
-                                                if (s >= 80) tags.push('High Virality');
+                                                {/* Hover overlay confined to thumbnail */}
+                                                {(() => {
+                                                    const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : '#';
+                                                    const tags: string[] = [];
+                                                    const s = Number((c as any).score) || 0;
+                                                    if ((c.hook || '').length > 0) tags.push('Strong Hook');
+                                                    if (c.description?.toLowerCase().includes('surpris')) tags.push('Surprise');
+                                                    if (c.description?.toLowerCase().includes('tip') || c.description?.toLowerCase().includes('how')) tags.push('Value');
+                                                    if (isMVP) tags.push('MVP');
+                                                    else if (s >= 80) tags.push('High Virality');
                                                 return (
                                                     <div className="pointer-events-none absolute inset-0 z-10 opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300">
                                                         <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
