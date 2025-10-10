@@ -38,11 +38,11 @@ export const WavyBackground = ({
   const getSpeed = () => {
     switch (speed) {
       case "slow":
-        return 0.001;
+        return 0.0005; // Reduced speed
       case "fast":
-        return 0.002;
+        return 0.001; // Reduced speed
       default:
-        return 0.001;
+        return 0.0005;
     }
   };
 
@@ -77,9 +77,10 @@ export const WavyBackground = ({
       ctx.beginPath();
       ctx.lineWidth = waveWidth || 50;
       ctx.strokeStyle = waveColors[i % waveColors.length];
-      for (x = 0; x < w; x += 5) {
+      // Reduced resolution for better performance
+      for (x = 0; x < w; x += 10) { // Changed from 5 to 10
         var y = noise(x / 800, 0.3 * i, nt) * 100;
-        ctx.lineTo(x, y + h * 0.5); // adjust for height, currently at 50% of the container
+        ctx.lineTo(x, y + h * 0.5);
       }
       ctx.stroke();
       ctx.closePath();
@@ -91,7 +92,7 @@ export const WavyBackground = ({
     ctx.fillStyle = backgroundFill || "black";
     ctx.globalAlpha = waveOpacity || 0.5;
     ctx.fillRect(0, 0, w, h);
-    drawWave(5);
+    drawWave(3); // Reduced from 5 to 3 waves
     animationId = requestAnimationFrame(render);
   };
 

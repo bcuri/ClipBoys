@@ -148,39 +148,47 @@ const MagicBentoBorder = ({
       }
     };
 
+    let rafId: number | null = null;
     const handleMouseMove = (e: MouseEvent) => {
       if (!isHoveredRef.current) return;
 
-      const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
+      // Throttle mousemove events using requestAnimationFrame
+      if (rafId) return;
+      
+      rafId = requestAnimationFrame(() => {
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
 
-      if (enableTilt) {
-        const rotateX = ((y - centerY) / centerY) * -5;
-        const rotateY = ((x - centerX) / centerX) * 5;
+        if (enableTilt) {
+          const rotateX = ((y - centerY) / centerY) * -3; // Reduced intensity
+          const rotateY = ((x - centerX) / centerX) * 3; // Reduced intensity
 
-        gsap.to(container, {
-          rotateX,
-          rotateY,
-          duration: 0.1,
-          ease: 'power2.out',
-          transformPerspective: 1000
-        });
-      }
+          gsap.to(container, {
+            rotateX,
+            rotateY,
+            duration: 0.2, // Slightly longer duration
+            ease: 'power2.out',
+            transformPerspective: 1000
+          });
+        }
 
-      if (enableMagnetism) {
-        const magnetX = (x - centerX) * 0.02;
-        const magnetY = (y - centerY) * 0.02;
+        if (enableMagnetism) {
+          const magnetX = (x - centerX) * 0.01; // Reduced intensity
+          const magnetY = (y - centerY) * 0.01; // Reduced intensity
 
-        gsap.to(container, {
-          x: magnetX,
-          y: magnetY,
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      }
+          gsap.to(container, {
+            x: magnetX,
+            y: magnetY,
+            duration: 0.4, // Slightly longer duration
+            ease: 'power2.out'
+          });
+        }
+        
+        rafId = null;
+      });
     };
 
     container.addEventListener('mouseenter', handleMouseEnter);
@@ -191,6 +199,10 @@ const MagicBentoBorder = ({
       container.removeEventListener('mouseenter', handleMouseEnter);
       container.removeEventListener('mouseleave', handleMouseLeave);
       container.removeEventListener('mousemove', handleMouseMove);
+      
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
       
       if (border && border.parentNode) {
         border.parentNode.removeChild(border);

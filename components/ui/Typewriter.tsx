@@ -21,15 +21,24 @@ export default function Typewriter({ text, speedMs = 35, className, replayKey, s
     if (!text) return;
 
     let i = 0;
-    const id = setInterval(() => {
-      i += 1;
-      setDisplay(text.slice(0, i));
-      if (i >= text.length) {
-        clearInterval(id);
+    let lastTime = 0;
+    const interval = Math.max(10, speedMs);
+    
+    const animate = (currentTime: number) => {
+      if (currentTime - lastTime >= interval) {
+        i += 1;
+        setDisplay(text.slice(0, i));
+        lastTime = currentTime;
+        
+        if (i < text.length) {
+          requestAnimationFrame(animate);
+        }
+      } else {
+        requestAnimationFrame(animate);
       }
-    }, Math.max(10, speedMs));
+    };
 
-    return () => clearInterval(id);
+    requestAnimationFrame(animate);
   }, [text, speedMs, replayKey]);
 
   return (

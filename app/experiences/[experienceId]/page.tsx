@@ -100,7 +100,7 @@ export default function Page() {
 				<Vortex
 					backgroundColor="black"
 					className="flex items-start flex-col justify-start px-2 md:px-10 py-4 w-full h-full"
-					particleCount={700}
+					particleCount={200}
 					baseHue={120}
 				>
 			{/* Top bar */}
