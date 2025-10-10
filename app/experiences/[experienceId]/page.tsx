@@ -393,26 +393,23 @@ export default function Page() {
                                                 {/* Hover overlay confined to thumbnail */}
                                                 {(() => {
                                                     const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : '#';
-                                                    const tags: string[] = [];
+                                                    const tags: string[] = (c as any).viralTags || [];
                                                     const s = Number((c as any).score) || 0;
-                                                    if ((c.hook || '').length > 0) tags.push('Strong Hook');
-                                                    if (c.description?.toLowerCase().includes('surpris')) tags.push('Surprise');
-                                                    if (c.description?.toLowerCase().includes('tip') || c.description?.toLowerCase().includes('how')) tags.push('Value');
-                                                    if (isMVP) tags.push('MVP');
-                                                    else if (s >= 80) tags.push('High Virality');
+                                                    if (isMVP) tags.unshift('MVP');
+                                                    else if (s >= 80) tags.unshift('High Virality');
                                                 return (
                                                     <div className="pointer-events-none absolute inset-0 z-10 opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300">
                                                         <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
                                                         <div className="absolute inset-0 p-4 flex flex-col justify-between">
                                                             <div>
-                                                                <p className="text-[10px] uppercase tracking-wider text-white/60">Why this clip hits</p>
-                                                                <p className="mt-1 text-sm text-white/90 line-clamp-2">{(c as any).scoreReasons || c.description}</p>
+                                                                <p className="text-[10px] uppercase tracking-wider text-white/60">Viral Tags</p>
                                                                 <div className="mt-2 flex flex-wrap gap-1.5">
-                                                                    {tags.map((t) => (
-                                                                        <span key={t} className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80 border border-white/15">{t}</span>
-									))}
-								</div>
-							</div>
+                                                                    {tags.slice(0, 6).map((t) => (
+                                                                        <span key={t} className="rounded-full bg-white/10 px-2 py-1 text-xs text-white/80 border border-white/15">{t}</span>
+                                                                    ))}
+                                                                </div>
+                                                                <p className="mt-3 text-xs text-white/70 line-clamp-2">{c.description}</p>
+                                                            </div>
                                                             <div className="flex items-center justify-between gap-2">
                                                                 <button 
                                                                     className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black transition-all" 

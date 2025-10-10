@@ -1,31 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
+import { analyzeViralTags, calculateViralityScore } from "@/lib/viral-tags";
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
-const systemPrompt = `You are a short-form video editor AI specialized in TikTok/Reels virality.
-Given a YouTube transcript with timestamps, propose 5-10 high-impact short-form clips.
-For EACH clip, also compute a virality score between 0 and 100 and a brief rationale.
+const systemPrompt = `You are a viral content expert specializing in TikTok/Instagram Reels/YouTube Shorts.
+Analyze YouTube transcripts and identify the most viral-worthy moments for short-form content.
 
-Scoring rubric (weight ~ sum to 100):
-- Hook strength (0-30): clear curiosity gap, shock, controversy, payoff within 3s.
-- Emotional charge (0-20): surprise, humor, anger, awe.
-- Clarity/standalone value (0-15): can be understood without full context.
-- Pacing (0-15): few filler words, quick progression, no dead air.
-- Visual/aural cues (0-10): references to visuals/sfx, voice energy, emphasis.
-- Shareability (0-10): quotable lines, practical takeaway, novelty.
+VIRAL MOMENT CRITERIA:
+1. STRONG HOOK (0-3 seconds): Shocking reveals, controversial takes, mystery setups, before/after moments
+2. EMOTIONAL IMPACT: Hilarious, heartwarming, shocking, inspiring, or relatable content
+3. TREND ALIGNMENT: POV content, tutorials, reactions, challenges, storytimes
+4. CLEAR VALUE: Standalone content that makes sense without context
+5. QUICK PACING: No filler words, fast progression, immediate payoff
 
-IMPORTANT: Use varied, realistic scores like 23, 47, 68, 84, 91, etc. - NOT just multiples of 5 or 10.
-Make scores feel authentic and nuanced based on the actual content quality.
+TASK: Find 6-8 viral moments from the transcript. Each clip should be 15-60 seconds long.
 
-Return JSON only with: { "clips": [{
-  "title": string,
-  "start": number,
-  "end": number,
-  "description": string,
-  "hook": string,
-  "score": number,            // 0-100 integer (varied, realistic scores)
-  "scoreReasons": string      // 1 sentence rationale
+Return JSON only: { "clips": [{
+  "title": string,           // Catchy, clickbait-style title
+  "start": number,           // Start time in seconds
+  "end": number,             // End time in seconds  
+  "description": string,     // What happens in this clip (1-2 sentences)
+  "hook": string            // Opening line that hooks viewers (first 3 seconds)
 }] }`;
 
 export async function POST(req: NextRequest) {
@@ -40,7 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "OPENAI_API_KEY not set" }, { status: 500 });
     }
 
-    const userPrompt = `VIDEO ID: ${videoId}\nTRANSCRIPT:\n${transcript}\n\nReturn only JSON.`;
+    const userPrompt = `VIDEO ID: ${videoId}\nTRANSCRIPT:\n${transcript}\n\nFind the most viral moments. Return only JSON.`;
 
     const res = await fetch(OPENAI_API_URL, {
       method: "POST",
@@ -54,7 +50,8 @@ export async function POST(req: NextRequest) {
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.4,
+        temperature: 0.3, // Lower temperature for more consistent results
+        max_tokens: 2000, // Limit tokens for faster response
       }),
     });
 
@@ -81,7 +78,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid LLM response" }, { status: 502 });
     }
 
-    return NextResponse.json({ clips: parsed.clips });
+    // Enhance clips with viral tags and realistic scoring
+    const enhancedClips = parsed.clips.map((clip: any) => {
+      // Analyze content for viral tags
+      const viralTags = analyzeViralTags(
+        clip.description || '',
+        clip.title || '',
+        clip.hook || ''
+      );
+
+      // Calculate realistic virality score based on tags
+      const baseScore = calculateViralityScore(viralTags);
+      
+      // Add some variation for realism (±3 points)
+      const variation = (Math.random() - 0.5) * 6;
+      const finalScore = Math.max(0, Math.min(100, Math.round(baseScore + variation)));
+
+      return {
+        ...clip,
+        score: finalScore,
+        scoreReasons: viralTags.slice(0, 3).join(', '), // Top 3 tags as reasons
+        viralTags: viralTags // Store all tags for display
+      };
+    });
+
+    return NextResponse.json({ clips: enhancedClips });
   } catch (err) {
     return NextResponse.json({ error: "Failed to generate clips" }, { status: 500 });
   }
