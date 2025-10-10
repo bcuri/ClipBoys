@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { CheckCircle2, Play, ExternalLink } from "lucide-react";
+import { CheckCircle2, Play, ExternalLink, Download, ListPlus } from "lucide-react";
 import { Vortex } from "../../../components/ui/vortex";
 import { fetchTranscript, requestClips, type GenerateClipsResponse } from "../../../lib/llm";
 import MagicBentoBorder from "../../../components/ui/MagicBentoBorder";
@@ -413,9 +413,20 @@ export default function Page() {
 								</div>
 							</div>
                                                             <div className="flex items-center justify-between gap-2">
-                                                                <a href={previewUrl} target="_blank" rel="noreferrer" className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}>Preview</a>
-                                                                <button className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20" onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(c.hook || ''); }}>Copy Hook</button>
-                                                                <button className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20" onClick={(e) => { e.stopPropagation(); }}>Save Clip</button>
+                                                                <button 
+                                                                    className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black transition-all" 
+                                                                    style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}
+                                                                    onClick={(e) => { e.stopPropagation(); /* add to list */ }}
+                                                                >
+                                                                    <ListPlus className="h-4 w-4 mr-2" /> Add to List
+                                                                </button>
+                                                                <button 
+                                                                    className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20 hover:bg-white/10 transition-all" 
+                                                                    onClick={(e) => { e.stopPropagation(); /* generate download */ }}
+                                                                >
+                                                                    <Download className="h-4 w-4 mr-2" /> Generate Download
+                                                                </button>
+                                                                <a href={previewUrl} target="_blank" rel="noreferrer" className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #06B6D4, #22c83c)' }}>Preview</a>
 									</div>
 								</div>
 						</div>

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { CheckCircle2, Play, ExternalLink } from "lucide-react";
+import { CheckCircle2, Play, ExternalLink, Download, ListPlus } from "lucide-react";
 import { fetchTranscript, requestClips, type GenerateClipsResponse } from "../lib/llm";
 import { Vortex } from "../components/ui/vortex";
 import MagicBentoBorder from "../components/ui/MagicBentoBorder";
 import { WavyBackground } from "../components/ui/wavy-background";
 import Typewriter from "../components/ui/Typewriter";
+import CardNav from "../components/ui/CardNav";
 import CustomVideoPlayer from "../components/ui/CustomVideoPlayer";
 
 export default function Page() {
@@ -132,6 +133,21 @@ export default function Page() {
 
 				{/* Hero Section */}
 				<div className="mx-auto max-w-6xl px-4 pt-20 pb-8 text-center">
+					{/* Card Navigation */}
+					<div className="mb-6">
+						<CardNav
+							logo="/favicon.ico"
+							items={[
+								{ label: "Product", links: [{ label: "Overview", href: "#" }, { label: "Examples", href: "#" }] },
+								{ label: "Company", links: [{ label: "About", href: "#" }, { label: "Careers", href: "#" }] },
+								{ label: "Resources", links: [{ label: "Guide", href: "#" }, { label: "Changelog", href: "#" }] }
+							]}
+							baseColor="#0b0b0b"
+							menuColor="#fff"
+							buttonBgColor="#66CCFF"
+							buttonTextColor="#000"
+						/>
+					</div>
 				<h1
 					className="brand-body tracking-tight mb-8 animate-fade-in"
 					style={{ fontSize: "56px", lineHeight: 1.1, display: "block", color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
@@ -319,7 +335,7 @@ export default function Page() {
 							style={{ fontSize: "56px", lineHeight: 1.1 }}
 							replayKey={`${clips?.length || 0}-${generationTime}`}
 						/>
-									</div>
+                                                </div>
                     <div id="generated-clips" className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {clips.map((c, i) => {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
@@ -382,7 +398,7 @@ export default function Page() {
                                     <div className="mb-4">
                                         <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
                                         <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
-                                    </div>
+                                            </div>
                                     {/* Thumbnail preview for the clip with contained hover overlay */}
                                     {videoData?.videoId && (
                                         <div className="relative w-full mb-4 overflow-hidden rounded-xl group/thumb" style={{ paddingBottom: '56.25%' }}>
@@ -412,16 +428,27 @@ export default function Page() {
                                                                 <div className="mt-2 flex flex-wrap gap-1.5">
                                                                     {tags.map((t) => (
                                                                         <span key={t} className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80 border border-white/15">{t}</span>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
+                                    ))}
+                                </div>
+                            </div>
                                                             <div className="flex items-center justify-between gap-2">
-                                                                <a href={previewUrl} target="_blank" rel="noreferrer" className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}>Preview</a>
-                                                                <button className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20" onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(c.hook || ''); }}>Copy Hook</button>
-                                                                <button className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20" onClick={(e) => { e.stopPropagation(); }}>Save Clip</button>
+							<button
+                                                                    className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black transition-all" 
+                                                                    style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}
+                                                                    onClick={(e) => { e.stopPropagation(); /* add to list action */ }}
+							>
+                                                                    <ListPlus className="h-4 w-4 mr-2" /> Add to List
+							</button>
+                            <button
+                                                                    className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20 hover:bg-white/10 transition-all" 
+                                                                    onClick={(e) => { e.stopPropagation(); /* generate download */ }}
+                                                                >
+                                                                    <Download className="h-4 w-4 mr-2" /> Generate Download
+                            </button>
+                                                                <a href={previewUrl} target="_blank" rel="noreferrer" className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #06B6D4, #22c83c)' }}>Preview</a>
                                                             </div>
-                                                        </div>
-                                                    </div>
+                        </div>
+									</div>
                                                 );
                                             })()}
 								</div>
