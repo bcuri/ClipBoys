@@ -338,6 +338,7 @@ export default function Page() {
 									borderRadius={16} 
 									enableTilt={true} 
 									enableMagnetism={true}
+									permanentBorder={isMVP}
 								>
                                 <div className="relative group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
                                     {/* Virality badge in top-right */}

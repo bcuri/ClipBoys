@@ -10,6 +10,7 @@ interface MagicBentoBorderProps {
   borderRadius?: number;
   enableTilt?: boolean;
   enableMagnetism?: boolean;
+  permanentBorder?: boolean;
 }
 
 const MagicBentoBorder = ({
@@ -20,7 +21,8 @@ const MagicBentoBorder = ({
   borderWidth = 2,
   borderRadius = 16,
   enableTilt = true,
-  enableMagnetism = true
+  enableMagnetism = true,
+  permanentBorder = false
 }: MagicBentoBorderProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const borderRef = useRef<HTMLDivElement>(null);
@@ -30,6 +32,29 @@ const MagicBentoBorder = ({
     if (!containerRef.current) return null;
 
     const border = document.createElement('div');
+    
+    // Determine background based on glowColor
+    let backgroundGradient;
+    if (glowColor === '147, 51, 234') {
+      // Purple gradient for MVP
+      backgroundGradient = `linear-gradient(45deg, 
+        rgba(139, 92, 246, 0.8) 0%, 
+        rgba(168, 85, 247, 0.6) 25%, 
+        rgba(192, 132, 252, 0.8) 50%, 
+        rgba(168, 85, 247, 0.6) 75%, 
+        rgba(139, 92, 246, 0.8) 100%
+      )`;
+    } else {
+      // Default blue-green gradient
+      backgroundGradient = `linear-gradient(45deg, 
+        rgba(102, 204, 255, 0.8) 0%, 
+        rgba(34, 197, 94, 0.6) 25%, 
+        rgba(6, 182, 212, 0.8) 50%, 
+        rgba(34, 197, 94, 0.6) 75%, 
+        rgba(102, 204, 255, 0.8) 100%
+      )`;
+    }
+
     border.style.cssText = `
       position: absolute;
       top: -${borderWidth}px;
@@ -37,15 +62,9 @@ const MagicBentoBorder = ({
       right: -${borderWidth}px;
       bottom: -${borderWidth}px;
       border-radius: ${borderRadius}px;
-      background: linear-gradient(45deg, 
-        rgba(102, 204, 255, 0.8) 0%, 
-        rgba(34, 197, 94, 0.6) 25%, 
-        rgba(6, 182, 212, 0.8) 50%, 
-        rgba(34, 197, 94, 0.6) 75%, 
-        rgba(102, 204, 255, 0.8) 100%
-      );
+      background: ${backgroundGradient};
       background-size: 400% 400%;
-      opacity: 0;
+      opacity: ${permanentBorder ? 1 : 0};
       pointer-events: none;
       z-index: 1;
       filter: blur(1px);
@@ -64,7 +83,7 @@ const MagicBentoBorder = ({
     });
 
     return border;
-  }, [borderWidth, borderRadius]);
+  }, [borderWidth, borderRadius, glowColor, permanentBorder]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -102,7 +121,7 @@ const MagicBentoBorder = ({
     const handleMouseLeave = () => {
       isHoveredRef.current = false;
       
-      if (border) {
+      if (border && !permanentBorder) {
         gsap.to(border, {
           opacity: 0,
           duration: 0.3,
