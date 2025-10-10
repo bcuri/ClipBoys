@@ -333,45 +333,53 @@ export default function Page() {
 									}`}
 									onClick={() => setActiveClipIndex(i)}
 								>
-                                        {/* Virality Progress Bar - spans top left to top right */}
+                                        {/* Virality Progress Bar */}
                                         {typeof c.score === 'number' && (() => {
                                             const s = Number(c.score) || 0;
                                             const progressWidth = `${s}%`;
                                             
-                                            let progressColor;
+                                            let progressColor, textColor;
                                             if (isMVP) {
-                                                progressColor = 'linear-gradient(90deg, #8B5CF6, #A855F7, #C084FC)';
+                                                progressColor = '#8B5CF6'; // Purple for MVP
+                                                textColor = '#8B5CF6';
                                             } else {
-                                                progressColor = s >= 80
-                                                  ? 'linear-gradient(90deg, #34D399, #10B981)'
-                                                  : s >= 60
-                                                  ? 'linear-gradient(90deg, #7DD3FC, #22D3EE)'
-                                                  : s >= 40
-                                                  ? 'linear-gradient(90deg, #FBBF24, #F59E0B)'
-                                                  : 'linear-gradient(90deg, #F87171, #EF4444)';
+                                                if (s >= 80) {
+                                                    progressColor = '#10B981'; // Green
+                                                    textColor = '#10B981';
+                                                } else if (s >= 60) {
+                                                    progressColor = '#22D3EE'; // Cyan
+                                                    textColor = '#22D3EE';
+                                                } else if (s >= 40) {
+                                                    progressColor = '#F59E0B'; // Yellow
+                                                    textColor = '#F59E0B';
+                                                } else {
+                                                    progressColor = '#EF4444'; // Red
+                                                    textColor = '#EF4444';
+                                                }
                                             }
                                             
                                             return (
-                                                <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl overflow-hidden">
-                                                    <div 
-                                                        className="h-full transition-all duration-500"
-                                                        style={{ 
-                                                            width: progressWidth,
-                                                            background: progressColor
-                                                        }}
-                                                    />
+                                                <div className="mb-4">
+                                                    <div className="flex justify-between mb-1">
+                                                        <span className="text-sm font-medium" style={{ color: textColor }}>
+                                                            {isMVP ? 'MVP' : 'Virality'}
+                                                        </span>
+                                                        <span className="text-sm font-medium" style={{ color: textColor }}>
+                                                            {s}%
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                                        <div 
+                                                            className="h-2.5 rounded-full transition-all duration-500"
+                                                            style={{ 
+                                                                width: progressWidth,
+                                                                backgroundColor: progressColor
+                                                            }}
+                                                        />
+                                                    </div>
                                                 </div>
                                             );
                                         })()}
-
-                                        {/* Virality percentage text */}
-                                        {typeof c.score === 'number' && (
-                                            <div className="absolute top-2 right-2 z-10">
-                                                <span className="text-xs font-semibold text-white bg-black/50 px-2 py-1 rounded">
-                                                    {isMVP ? `MVP ${c.score}%` : `${c.score}%`}
-                                                </span>
-                                            </div>
-                                        )}
 
                                         {/* Time range */}
                                         <div className="mb-4 pt-2">
