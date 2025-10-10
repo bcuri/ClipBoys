@@ -5,7 +5,7 @@ const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
 const systemPrompt = `You are a viral content expert for TikTok/Instagram Reels/YouTube Shorts.
 
-VIRAL TAGS (assign 2-3 unique tags per clip, 4 for MVP):
+VIRAL TAGS (assign exactly 2 unique tags per clip):
 - Shocking Reveal, Controversial Take, Mystery Setup, Before/After
 - Hilarious, Heartwarming, Shocking, Inspiring, Relatable
 - POV, Tutorial, Reaction, Challenge, Storytime, Transformation
@@ -16,11 +16,10 @@ VIRAL TAGS (assign 2-3 unique tags per clip, 4 for MVP):
 - Q&A, Step-by-Step, Myth Busting, Timeline
 
 IMPORTANT RULES:
-1. Each clip must have UNIQUE tags - no duplicates across clips
+1. Each clip must have exactly 2 UNIQUE tags - no duplicates across clips
 2. Tags must be RELEVANT to the specific clip content
-3. MVP clip gets 4 tags, others get 2-3 tags
-4. Choose tags that best describe what makes THIS specific clip viral
-5. Ensure variety across all clips
+3. Choose tags that best describe what makes THIS specific clip viral
+4. Ensure variety across all clips
 
 TASK: Find 6-8 viral moments (15-60 seconds each).
 
@@ -30,7 +29,7 @@ Return JSON: { "clips": [{
   "end": number,
   "description": string,
   "score": number,        // 0-100 realistic score
-  "viralTags": string[],  // 2-3 unique tags, 4 for MVP
+  "viralTags": string[],  // exactly 2 unique tags
   "isMVP": boolean        // true for highest scoring clip
 }] }`;
 

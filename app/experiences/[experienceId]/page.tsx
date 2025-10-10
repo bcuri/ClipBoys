@@ -326,106 +326,117 @@ export default function Page() {
                             return (
                                 <div 
 									key={`${c.title}-${i}`} 
-									className={`relative group bg-white/5 backdrop-blur-md rounded-2xl border p-4 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+									className={`relative group bg-white/5 backdrop-blur-md rounded-2xl border p-4 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-xl flex flex-col h-full ${
 										isMVP 
 											? 'border-purple-400 shadow-purple-400/25' 
 											: 'border-white/10 hover:border-cyan-400/50'
 									}`}
 									onClick={() => setActiveClipIndex(i)}
 								>
-                                        {/* Virality badge in top-right */}
+                                        {/* Virality Progress Bar - spans top left to top right */}
                                         {typeof c.score === 'number' && (() => {
                                             const s = Number(c.score) || 0;
+                                            const progressWidth = `${s}%`;
                                             
-                                            let gradient, glow, text;
+                                            let progressColor;
                                             if (isMVP) {
-                                                gradient = 'linear-gradient(90deg, #8B5CF6, #A855F7, #C084FC)';
-                                                glow = '0 0 25px rgba(139, 92, 246, 0.8)';
-                                                text = `MVP ${displayScore}%`;
+                                                progressColor = 'linear-gradient(90deg, #8B5CF6, #A855F7, #C084FC)';
                                             } else {
-                                                gradient = s >= 80
+                                                progressColor = s >= 80
                                                   ? 'linear-gradient(90deg, #34D399, #10B981)'
                                                   : s >= 60
                                                   ? 'linear-gradient(90deg, #7DD3FC, #22D3EE)'
                                                   : s >= 40
                                                   ? 'linear-gradient(90deg, #FBBF24, #F59E0B)'
                                                   : 'linear-gradient(90deg, #F87171, #EF4444)';
-                                                glow = s >= 80
-                                                  ? '0 0 18px rgba(16,185,129,0.55)'
-                                                  : s >= 60
-                                                  ? '0 0 18px rgba(34,211,238,0.55)'
-                                                  : s >= 40
-                                                  ? '0 0 18px rgba(245,158,11,0.55)'
-                                                  : '0 0 18px rgba(239,68,68,0.55)';
-                                                text = `Virality ${s}%`;
                                             }
                                             
                                             return (
-                                                <span className="absolute top-3 right-3 z-10 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black" style={{ background: gradient, boxShadow: glow }}>
-                                                    {text}
-                                                </span>
+                                                <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl overflow-hidden">
+                                                    <div 
+                                                        className="h-full transition-all duration-500"
+                                                        style={{ 
+                                                            width: progressWidth,
+                                                            background: progressColor
+                                                        }}
+                                                    />
+                                                </div>
                                             );
                                         })()}
 
-                                    <div className="mb-4">
-                                        <h3 className="text-white font-semibold text-lg mb-2">{c.title}</h3>
-                                        <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
-											</div>
-                                    {/* Thumbnail preview for the clip with contained hover overlay */}
-                                    {videoData?.videoId && (
-                                        <div className="relative w-full mb-4 overflow-hidden rounded-xl group/thumb" style={{ paddingBottom: '56.25%' }}>
-                                            <img
-                                                src={`https://img.youtube.com/vi/${videoData.videoId}/hqdefault.jpg`}
-                                                alt={c.title}
-                                                className="absolute inset-0 w-full h-full object-cover transition-all duration-300 group-hover/thumb:blur-sm"
-                                            />
-                                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40" />
+                                        {/* Virality percentage text */}
+                                        {typeof c.score === 'number' && (
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <span className="text-xs font-semibold text-white bg-black/50 px-2 py-1 rounded">
+                                                    {isMVP ? `MVP ${c.score}%` : `${c.score}%`}
+                                                </span>
+                                            </div>
+                                        )}
 
-                                                {/* Hover overlay confined to thumbnail */}
+                                        {/* Time range */}
+                                        <div className="mb-4 pt-2">
+                                            <p className="text-cyan-400 text-sm mb-2">{start}s → {end}s</p>
+                                        </div>
+
+                                        {/* Thumbnail preview for the clip */}
+                                        {videoData?.videoId && (
+                                            <div className="relative w-full mb-4 overflow-hidden rounded-xl group/thumb" style={{ paddingBottom: '56.25%' }}>
+                                                <img
+                                                    src={`https://img.youtube.com/vi/${videoData.videoId}/hqdefault.jpg`}
+                                                    alt={c.title}
+                                                    className="absolute inset-0 w-full h-full object-cover transition-all duration-300 group-hover/thumb:blur-sm"
+                                                />
+                                                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40" />
+
+                                                {/* Hover overlay with viral tags and buttons */}
                                                 {(() => {
-                                                    const previewUrl = videoData?.videoId ? `https://www.youtube.com/watch?v=${videoData.videoId}&t=${start}s` : '#';
                                                     const tags: string[] = c.viralTags || [];
                                                     const s = Number(c.score) || 0;
                                                     if (isMVP) tags.unshift('MVP');
                                                     else if (s >= 80) tags.unshift('High Virality');
-                                                return (
-                                                    <div className="pointer-events-none absolute inset-0 z-10 opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300">
-                                                        <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
-                                                        <div className="absolute inset-0 p-4 flex flex-col justify-between">
-                                                            <div>
-                                                                <p className="text-[10px] uppercase tracking-wider text-white/60">Viral Tags</p>
-                                                                <div className="mt-2 flex flex-wrap gap-1.5">
-                                                                    {tags.slice(0, 6).map((t, tagIndex) => (
-                                                                        <span key={`${t}-${i}-${tagIndex}`} className="rounded-full bg-white/10 px-2 py-1 text-xs text-white/80 border border-white/15">{t}</span>
-									))}
-								</div>
-                                                                <p className="mt-3 text-xs text-white/70 line-clamp-2">{c.description}</p>
-							</div>
-                                                            <div className="flex items-center justify-between gap-2">
-                                                                <button 
-                                                                    className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black transition-all" 
-                                                                    style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}
-                                                                    onClick={(e) => { e.stopPropagation(); /* add to list */ }}
-                                                                >
-                                                                    <ListPlus className="h-4 w-4 mr-2" /> Add to List
-                                                                </button>
-                                                                <button 
-                                                                    className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20 hover:bg-white/10 transition-all" 
-                                                                    onClick={(e) => { e.stopPropagation(); /* generate download */ }}
-                                                                >
-                                                                    <Download className="h-4 w-4 mr-2" /> Generate Download
-                                                                </button>
-                                                                <a href={previewUrl} target="_blank" rel="noreferrer" className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black" style={{ background: 'linear-gradient(90deg, #06B6D4, #22c83c)' }}>Preview</a>
-									</div>
-								</div>
-						</div>
-                                                );
-                                            })()}
-								</div>
-							)}
-							
-                                        <div className="space-y-3">
-                                            <p className="text-white/80 text-sm">{c.description}</p>
+                                                    
+                                                    return (
+                                                        <div className="pointer-events-none absolute inset-0 z-10 opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300">
+                                                            <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
+                                                            <div className="absolute inset-0 p-4 flex flex-col justify-between">
+                                                                <div>
+                                                                    <p className="text-[10px] uppercase tracking-wider text-white/60">Viral Tags</p>
+                                                                    <div className="mt-2 flex flex-wrap gap-1.5">
+                                                                        {tags.slice(0, 2).map((t, tagIndex) => (
+                                                                            <span key={`${t}-${i}-${tagIndex}`} className="rounded-full bg-white/10 px-2 py-1 text-xs text-white/80 border border-white/15">{t}</span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center justify-center gap-2">
+                                                                    <button
+                                                                        className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-black transition-all" 
+                                                                        style={{ background: 'linear-gradient(90deg, #66CCFF, #22c83c)' }}
+                                                                        onClick={(e) => { 
+                                                                            e.stopPropagation(); 
+                                                                            const clipId = `clip-${Date.now()}-${i}`;
+                                                                            // TODO: Implement save functionality for experience page
+                                                                            console.log('Save clip:', clipId);
+                                                                        }}
+                                                                    >
+                                                                        <ListPlus className="h-4 w-4 mr-2" /> Save
+                                                                    </button>
+                                                                    <button
+                                                                        className="pointer-events-auto inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white/90 border border-white/20 hover:bg-white/10 transition-all" 
+                                                                        onClick={(e) => { e.stopPropagation(); /* generate download */ }}
+                                                                    >
+                                                                        <Download className="h-4 w-4" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
+                                        )}
+                                        
+                                        {/* Title at the bottom */}
+                                        <div className="mt-auto">
+                                            <h3 className="text-white font-semibold text-lg mb-2 line-clamp-2">{c.title}</h3>
                                         </div>
 								
 							</div>
