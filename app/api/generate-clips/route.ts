@@ -51,20 +51,41 @@ export async function POST(req: NextRequest) {
 
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content || "";
+    
+    // Log the raw response for debugging
+    console.log("Raw LLM response:", raw);
+    
     // Attempt to parse JSON from model output
     let parsed: any = null;
     try {
       parsed = JSON.parse(raw);
-    } catch (_) {
+    } catch (parseError) {
+      console.log("JSON parse error:", parseError);
       // Try to extract JSON substring
       const match = raw.match(/\{[\s\S]*\}/);
       if (match) {
-        parsed = JSON.parse(match[0]);
+        try {
+          parsed = JSON.parse(match[0]);
+        } catch (extractError) {
+          console.log("JSON extract error:", extractError);
+          return NextResponse.json({ 
+            error: "Invalid LLM response format", 
+            detail: `Failed to parse JSON: ${raw.substring(0, 200)}...` 
+          }, { status: 502 });
+        }
+      } else {
+        return NextResponse.json({ 
+          error: "No JSON found in LLM response", 
+          detail: `Raw response: ${raw.substring(0, 200)}...` 
+        }, { status: 502 });
       }
     }
 
     if (!parsed || !Array.isArray(parsed.clips)) {
-      return NextResponse.json({ error: "Invalid LLM response" }, { status: 502 });
+      return NextResponse.json({ 
+        error: "Invalid LLM response structure", 
+        detail: `Expected clips array, got: ${JSON.stringify(parsed)}` 
+      }, { status: 502 });
     }
 
     // Enhance clips with viral tags and realistic scoring (optimized)

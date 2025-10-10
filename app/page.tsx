@@ -166,32 +166,38 @@ export default function Page() {
 		
 		fetchTranscript(videoData.videoId)
 			.then(async (t) => {
-				const out = await requestClips(videoData.videoId, t.fullText || "");
-				setClips(out.clips);
-				
-				// Save clips to database
-				await saveClips(out.clips);
-				
-				const endTime = Date.now();
-				const generationTime = Math.round((endTime - startTime) / 1000);
-				setGenerationTime(generationTime);
-				
-				// Cache the result
-				sessionStorage.setItem(cacheKey, JSON.stringify({
-					clips: out.clips,
-					generationTime
-				}));
-				
-				// Scroll to the generated title so the text is readable
-				setTimeout(() => {
-					try {
-						const el = document.getElementById("generated-title");
-						el && el.scrollIntoView({ behavior: "smooth", block: "center" });
-					} catch {}
-				}, 50);
+				try {
+					const out = await requestClips(videoData.videoId, t.fullText || "");
+					setClips(out.clips);
+					
+					// Save clips to database
+					await saveClips(out.clips);
+					
+					const endTime = Date.now();
+					const generationTime = Math.round((endTime - startTime) / 1000);
+					setGenerationTime(generationTime);
+					
+					// Cache the result
+					sessionStorage.setItem(cacheKey, JSON.stringify({
+						clips: out.clips,
+						generationTime
+					}));
+					
+					// Scroll to the generated title so the text is readable
+					setTimeout(() => {
+						try {
+							const el = document.getElementById("generated-title");
+							el && el.scrollIntoView({ behavior: "smooth", block: "center" });
+						} catch {}
+					}, 50);
+				} catch (error) {
+					console.error("Error generating clips:", error);
+					alert(`Error generating clips: ${error instanceof Error ? error.message : 'Unknown error'}`);
+				}
 			})
-			.catch(() => {
-				alert("Unable to generate clips for this video.");
+			.catch((error) => {
+				console.error("Error fetching transcript or generating clips:", error);
+				alert(`Unable to generate clips for this video: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			})
 			.finally(() => setIsGenerating(false));
 	};

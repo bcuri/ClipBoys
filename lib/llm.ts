@@ -22,7 +22,14 @@ export async function requestClips(videoId: string, transcript: string): Promise
     const detail = await res.text();
     throw new Error(`Clip generation failed: ${detail}`);
   }
-  return res.json();
+  
+  try {
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("JSON parsing error in requestClips:", error);
+    throw new Error(`Failed to parse response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 export async function fetchTranscript(videoId: string): Promise<{ fullText: string } & any> {
@@ -35,7 +42,14 @@ export async function fetchTranscript(videoId: string): Promise<{ fullText: stri
     const detail = await res.text();
     throw new Error(`Transcript fetch failed: ${detail}`);
   }
-  return res.json();
+  
+  try {
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("JSON parsing error in fetchTranscript:", error);
+    throw new Error(`Failed to parse transcript response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 
