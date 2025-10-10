@@ -138,9 +138,9 @@ export default function Page() {
 						<CardNav
 							logo="/favicon.ico"
 							items={[
-								{ label: "Product", links: [{ label: "Overview", href: "#" }, { label: "Examples", href: "#" }] },
-								{ label: "Company", links: [{ label: "About", href: "#" }, { label: "Careers", href: "#" }] },
-								{ label: "Resources", links: [{ label: "Guide", href: "#" }, { label: "Changelog", href: "#" }] }
+								{ label: "Videos", links: [{ label: "All Videos", href: "#" }, { label: "My Clips", href: "#" }] },
+								{ label: "Contact", links: [{ label: "Support", href: "#" }, { label: "Twitter", href: "#" }] },
+								{ label: "My Account", links: [{ label: "Profile", href: "#" }, { label: "Billing", href: "#" }] }
 							]}
 							baseColor="#0b0b0b"
 							menuColor="#fff"

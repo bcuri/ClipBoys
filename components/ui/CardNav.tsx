@@ -131,9 +131,42 @@ export default function CardNav({
     <div className={`w-full ${className}`}>
       <nav
         ref={navRef}
-        className={`card-nav open:max-h-[80vh] mx-auto w-full max-w-5xl rounded-2xl border border-white/10 bg-[${baseColor}]/40 backdrop-blur-md ring-1 ring-white/10`}
-        style={{ backgroundColor: baseColor }}
+        className={`relative card-nav open:max-h-[80vh] mx-auto w-full max-w-5xl rounded-2xl overflow-hidden`}
+        style={{
+          // Murky liquid glass background
+          background:
+            "radial-gradient(1200px 300px at 10% -20%, rgba(102,204,255,0.06), transparent), radial-gradient(1200px 300px at 110% 120%, rgba(34,200,60,0.06), transparent), linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
+          backdropFilter: "blur(18px)",
+          WebkitBackdropFilter: "blur(18px)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 30px rgba(0,0,0,0.45)",
+        }}
       >
+        {/* Gradient border overlay */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-2xl"
+          style={{
+            padding: 1,
+            background:
+              "linear-gradient(120deg, rgba(102,204,255,0.45), rgba(6,182,212,0.35), rgba(34,200,60,0.45))",
+            WebkitMask:
+              "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+            WebkitMaskComposite: "xor",
+            maskComposite: "exclude" as any,
+          }}
+        />
+        {/* Subtle noise for murky texture */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 mix-blend-overlay opacity-[0.12]"
+          style={{
+            backgroundImage:
+              "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"120\" viewBox=\"0 0 120 120\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"2\" stitchTiles=\"stitch\"/></filter><rect width=\"120\" height=\"120\" filter=\"url(%23n)\" opacity=\"0.6\"/></svg>')",
+            backgroundSize: "160px 160px",
+          }}
+        />
         <div className="card-nav-top flex items-center justify-between px-4 py-3">
           <div
             className={`hamburger-menu ${isHamburgerOpen ? "open" : ""} cursor-pointer select-none`}
