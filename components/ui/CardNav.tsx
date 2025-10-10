@@ -146,7 +146,7 @@ export default function CardNav({
         {/* Gradient border overlay */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-2xl"
+          className="pointer-events-none absolute inset-0 rounded-2xl z-0"
           style={{
             padding: 1,
             background:
@@ -160,13 +160,14 @@ export default function CardNav({
         {/* Subtle noise for murky texture */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 mix-blend-overlay opacity-[0.12]"
+          className="pointer-events-none absolute inset-0 mix-blend-overlay opacity-[0.12] z-0"
           style={{
             backgroundImage:
               "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"120\" viewBox=\"0 0 120 120\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"2\" stitchTiles=\"stitch\"/></filter><rect width=\"120\" height=\"120\" filter=\"url(%23n)\" opacity=\"0.6\"/></svg>')",
             backgroundSize: "160px 160px",
           }}
         />
+        <div className="relative z-10">
         <div className="card-nav-top flex items-center justify-between px-4 py-3">
           <div
             className={`hamburger-menu ${isHamburgerOpen ? "open" : ""} cursor-pointer select-none`}
@@ -212,6 +213,7 @@ export default function CardNav({
               </div>
             </div>
           ))}
+        </div>
         </div>
       </nav>
     </div>
