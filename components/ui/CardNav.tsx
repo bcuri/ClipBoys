@@ -131,7 +131,7 @@ export default function CardNav({
     <div className={`w-full ${className}`}>
       <nav
         ref={navRef}
-        className={`relative card-nav open:max-h-[80vh] mx-auto w-full max-w-5xl rounded-2xl overflow-hidden`}
+        className={`relative card-nav open:max-h-[80vh] mx-auto w-full max-w-5xl rounded-2xl`}
         style={{
           // Murky liquid glass background
           background:
@@ -185,13 +185,13 @@ export default function CardNav({
             <img src={logo} alt={logoAlt} className="logo h-7 w-auto" />
           </div>
 
-          <button
-            type="button"
-            className="card-nav-cta-button inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow"
+          <a
+            href="/account"
+            className="card-nav-cta-button inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow transition-all hover:scale-105"
             style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
           >
             <User className="mr-2 h-4 w-4" /> My Account
-          </button>
+          </a>
         </div>
 
         <div className="card-nav-content grid grid-cols-1 gap-3 px-4 pb-4 md:grid-cols-3" aria-hidden={!isExpanded}>
