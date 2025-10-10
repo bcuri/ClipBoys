@@ -395,9 +395,13 @@ export default function AccountPage() {
                         onClick={() => setActiveTab(tab.id)}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
                           activeTab === tab.id
-                            ? "bg-cyan-400/20 text-cyan-400 border border-cyan-400/30"
+                            ? "text-white border border-white/20"
                             : "text-white/70 hover:bg-white/10 hover:text-white"
                         }`}
+                        style={activeTab === tab.id ? {
+                          background: "linear-gradient(90deg, #66CCFF 0%, #22c83c 50%, #06B6D4 100%)",
+                          boxShadow: "0 4px 15px rgba(102, 204, 255, 0.25)"
+                        } : {}}
                       >
                         <Icon className="h-5 w-5" />
                         {tab.label}
