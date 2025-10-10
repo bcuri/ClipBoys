@@ -7,7 +7,6 @@ import { fetchTranscript, requestClips, type GenerateClipsResponse } from "../..
 import MagicBentoBorder from "../../../components/ui/MagicBentoBorder";
 import { WavyBackground } from "../../../components/ui/wavy-background";
 import Typewriter from "../../../components/ui/Typewriter";
-import CustomVideoPlayer from "../../../components/ui/CustomVideoPlayer";
 
 export default function Page() {
 	const [youtubeUrl, setYoutubeUrl] = useState("");
