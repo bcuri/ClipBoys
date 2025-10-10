@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, User } from "lucide-react";
 
 type NavLink = { label: string; href: string; ariaLabel?: string };
 type NavItem = { label: string; bgColor?: string; textColor?: string; links?: NavLink[] };
@@ -189,7 +189,7 @@ export default function CardNav({
             className="card-nav-cta-button inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow"
             style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
           >
-            Get Started
+            <User className="mr-2 h-4 w-4" /> My Account
           </button>
         </div>
 
