@@ -21,7 +21,7 @@ export const Vortex = (props: VortexProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const animationFrameId = useRef<number | null>(null);
-  const particleCount = props.particleCount || 300; // Reduced from 700 to 300
+  const particleCount = props.particleCount || 150; // Reduced from 300 to 150
   const particlePropCount = 9;
   const particlePropsLength = particleCount * particlePropCount;
   const rangeY = props.rangeY || 100;

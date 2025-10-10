@@ -100,7 +100,7 @@ export default function Page() {
 				<Vortex
 					backgroundColor="black"
 					className="flex items-start flex-col justify-start px-2 md:px-10 py-4 w-full h-full"
-					particleCount={200}
+					particleCount={100}
 					baseHue={120}
 				>
 			{/* Top bar */}
@@ -316,7 +316,7 @@ export default function Page() {
 							replayKey={`${clips?.length || 0}-${generationTime}`}
 						/>
 												</div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {clips.map((c, i) => {
 								const start = Math.max(0, Math.floor(Number(c.start) || 0));
 								const end = Math.max(start + 1, Math.floor(Number(c.end) || start + 15));
@@ -324,17 +324,15 @@ export default function Page() {
 								const isMVP = c.isMVP || false;
 								const displayScore = currentScore;
                             return (
-                                <MagicBentoBorder 
+                                <div 
 									key={`${c.title}-${i}`} 
-									className="rounded-2xl" 
-									glowColor={isMVP ? "147, 51, 234" : "50, 227, 63"} 
-									borderWidth={isMVP ? 3 : 2} 
-									borderRadius={16} 
-									enableTilt={true} 
-									enableMagnetism={true}
-									permanentBorder={isMVP}
+									className={`relative group bg-white/5 backdrop-blur-md rounded-2xl border p-4 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+										isMVP 
+											? 'border-purple-400 shadow-purple-400/25' 
+											: 'border-white/10 hover:border-cyan-400/50'
+									}`}
+									onClick={() => setActiveClipIndex(i)}
 								>
-                                <div className="relative group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 cursor-pointer" onClick={() => setActiveClipIndex(i)}>
                                         {/* Virality badge in top-right */}
                                         {typeof c.score === 'number' && (() => {
                                             const s = Number(c.score) || 0;
@@ -397,8 +395,8 @@ export default function Page() {
                                                             <div>
                                                                 <p className="text-[10px] uppercase tracking-wider text-white/60">Viral Tags</p>
                                                                 <div className="mt-2 flex flex-wrap gap-1.5">
-                                                                    {tags.slice(0, 6).map((t) => (
-                                                                        <span key={t} className="rounded-full bg-white/10 px-2 py-1 text-xs text-white/80 border border-white/15">{t}</span>
+                                                                    {tags.slice(0, 6).map((t, tagIndex) => (
+                                                                        <span key={`${t}-${i}-${tagIndex}`} className="rounded-full bg-white/10 px-2 py-1 text-xs text-white/80 border border-white/15">{t}</span>
 									))}
 								</div>
                                                                 <p className="mt-3 text-xs text-white/70 line-clamp-2">{c.description}</p>
@@ -428,10 +426,9 @@ export default function Page() {
 							
                                         <div className="space-y-3">
                                             <p className="text-white/80 text-sm">{c.description}</p>
-								</div>
+                                        </div>
 								
 							</div>
-                                </MagicBentoBorder>
                             );
                         })}
 						</div>
