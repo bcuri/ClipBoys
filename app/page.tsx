@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { CheckCircle2, Play, ExternalLink, Download, ListPlus } from "lucide-react";
+import { CheckCircle2, Play, ExternalLink, Download, ListPlus, X, User, Video, Heart, CreditCard, Settings, TrendingUp, Clock, Star, ChevronRight, Zap, Shield, Bell } from "lucide-react";
 import { fetchTranscript, requestClips, type GenerateClipsResponse } from "../lib/llm";
 import { Vortex } from "../components/ui/vortex";
 import MagicBentoBorder from "../components/ui/MagicBentoBorder";
@@ -24,6 +24,7 @@ export default function Page() {
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [generationTime, setGenerationTime] = useState<number>(0);
     const [activeClipIndex, setActiveClipIndex] = useState<number | null>(null);
+    const [showAccountModal, setShowAccountModal] = useState(false);
 
 	// YouTube URL validation
 	const isValidYouTubeUrl = (url: string) => {
@@ -97,6 +98,29 @@ export default function Page() {
 			.finally(() => setIsGenerating(false));
 	};
 
+	// Account modal state and functions
+	const [activeAccountTab, setActiveAccountTab] = useState("overview");
+
+	const accountTabs = [
+		{ id: "overview", label: "Overview", icon: User },
+		{ id: "videos", label: "My Videos", icon: Video },
+		{ id: "saved", label: "Saved Clips", icon: Heart },
+		{ id: "subscription", label: "Subscription", icon: CreditCard },
+		{ id: "settings", label: "Settings", icon: Settings },
+	];
+
+	// Handle keyboard escape for modals
+	useEffect(() => {
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				setActiveClipIndex(null);
+				setShowAccountModal(false);
+			}
+		};
+		document.addEventListener('keydown', handleEscape);
+		return () => document.removeEventListener('keydown', handleEscape);
+	}, []);
+
 	return (
 		<div className="min-h-screen overflow-x-hidden overflow-y-auto">
 			{/* Vortex Hero Section */}
@@ -146,6 +170,7 @@ export default function Page() {
 							menuColor="#fff"
 							buttonBgColor="#66CCFF"
 							buttonTextColor="#000"
+							onAccountClick={() => setShowAccountModal(true)}
 						/>
 					</div>
 				<h1
@@ -497,6 +522,111 @@ export default function Page() {
                         })()
                     )}
 					</WavyBackground>
+				</div>
+			)}
+
+			{/* Account Modal */}
+			{showAccountModal && (
+				<div 
+					className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+					onClick={(e) => {
+						if (e.target === e.currentTarget) {
+							setShowAccountModal(false);
+						}
+					}}
+				>
+					<div 
+						className="relative w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden rounded-3xl"
+						style={{
+							// Murky liquid glass background
+							background:
+								"radial-gradient(1200px 300px at 10% -20%, rgba(102,204,255,0.06), transparent), radial-gradient(1200px 300px at 110% 120%, rgba(34,200,60,0.06), transparent), linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
+							backdropFilter: "blur(18px)",
+							WebkitBackdropFilter: "blur(18px)",
+							border: "1px solid rgba(255,255,255,0.12)",
+							boxShadow:
+								"inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 30px rgba(0,0,0,0.45)",
+						}}
+					>
+						{/* Gradient border overlay */}
+						<div
+							aria-hidden
+							className="pointer-events-none absolute inset-0 rounded-3xl z-0"
+							style={{
+								padding: 1,
+								background:
+									"linear-gradient(120deg, rgba(102,204,255,0.45), rgba(6,182,212,0.35), rgba(34,200,60,0.45))",
+								WebkitMask:
+									"linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+								WebkitMaskComposite: "xor",
+								maskComposite: "exclude" as any,
+							}}
+						/>
+						{/* Subtle noise for murky texture */}
+						<div
+							aria-hidden
+							className="pointer-events-none absolute inset-0 mix-blend-overlay opacity-[0.12] z-0"
+							style={{
+								backgroundImage:
+									"url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"120\" viewBox=\"0 0 120 120\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"2\" stitchTiles=\"stitch\"/></filter><rect width=\"120\" height=\"120\" filter=\"url(%23n)\" opacity=\"0.6\"/></svg>')",
+								backgroundSize: "160px 160px",
+							}}
+						/>
+
+						{/* Close Button */}
+							<button
+							onClick={() => setShowAccountModal(false)}
+							className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+							>
+							<X className="h-5 w-5 text-white" />
+							</button>
+
+						<div className="relative z-10 flex h-[90vh]">
+							{/* Left Sidebar Navigation */}
+							<div className="w-64 p-6 border-r border-white/10">
+								<div className="mb-8">
+									<h1 className="text-2xl font-bold text-white mb-1">My Account</h1>
+									<p className="text-white/60 text-sm">Manage your content</p>
+								</div>
+								
+								<nav className="space-y-2">
+									{accountTabs.map((tab) => {
+										const Icon = tab.icon;
+										return (
+							<button
+												key={tab.id}
+												onClick={() => setActiveAccountTab(tab.id)}
+												className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
+													activeAccountTab === tab.id
+														? "text-white border border-white/20"
+														: "text-white/70 hover:bg-white/10 hover:text-white"
+												}`}
+												style={activeAccountTab === tab.id ? {
+													background: "linear-gradient(90deg, #66CCFF 0%, #22c83c 50%, #06B6D4 100%)",
+													boxShadow: "0 4px 15px rgba(102, 204, 255, 0.25)"
+												} : {}}
+											>
+												<Icon className="h-5 w-5" />
+												{tab.label}
+							</button>
+										);
+									})}
+								</nav>
+							</div>
+
+							{/* Main Content Area */}
+							<div className="flex-1 p-8 overflow-y-auto">
+								<div className="max-w-4xl">
+									{/* Account content will go here - simplified for now */}
+									<div className="text-center py-20">
+										<User className="h-16 w-16 text-white/40 mx-auto mb-4" />
+										<h2 className="text-2xl font-semibold text-white mb-2">Account Dashboard</h2>
+										<p className="text-white/60">Account functionality coming soon...</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			)}
 		</div>

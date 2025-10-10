@@ -17,6 +17,7 @@ interface CardNavProps {
   menuColor?: string;
   buttonBgColor?: string;
   buttonTextColor?: string;
+  onAccountClick?: () => void;
 }
 
 export default function CardNav({
@@ -29,6 +30,7 @@ export default function CardNav({
   menuColor = "#fff",
   buttonBgColor = "#22c83c",
   buttonTextColor = "#000",
+  onAccountClick,
 }: CardNavProps) {
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -185,13 +187,13 @@ export default function CardNav({
             <img src={logo} alt={logoAlt} className="logo h-7 w-auto" />
           </div>
 
-          <a
-            href="/account"
+          <button
+            onClick={onAccountClick}
             className="card-nav-cta-button inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow transition-all hover:scale-105"
             style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
           >
             <User className="mr-2 h-4 w-4" /> My Account
-          </a>
+          </button>
         </div>
 
         <div className="card-nav-content grid grid-cols-1 gap-3 px-4 pb-4 md:grid-cols-3" aria-hidden={!isExpanded}>
