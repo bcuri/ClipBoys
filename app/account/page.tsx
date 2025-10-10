@@ -339,35 +339,82 @@ export default function AccountPage() {
         baseHue={120}
       >
         <div className="w-full max-w-7xl mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">My Account</h1>
-            <p className="text-white/60">Manage your videos, clips, and subscription</p>
-          </div>
+          {/* Main Container with Liquid Glass Effect */}
+          <div 
+            className="relative rounded-3xl overflow-hidden"
+            style={{
+              // Murky liquid glass background
+              background:
+                "radial-gradient(1200px 300px at 10% -20%, rgba(102,204,255,0.06), transparent), radial-gradient(1200px 300px at 110% 120%, rgba(34,200,60,0.06), transparent), linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
+              backdropFilter: "blur(18px)",
+              WebkitBackdropFilter: "blur(18px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 30px rgba(0,0,0,0.45)",
+            }}
+          >
+            {/* Gradient border overlay */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-3xl z-0"
+              style={{
+                padding: 1,
+                background:
+                  "linear-gradient(120deg, rgba(102,204,255,0.45), rgba(6,182,212,0.35), rgba(34,200,60,0.45))",
+                WebkitMask:
+                  "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                WebkitMaskComposite: "xor",
+                maskComposite: "exclude" as any,
+              }}
+            />
+            {/* Subtle noise for murky texture */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 mix-blend-overlay opacity-[0.12] z-0"
+              style={{
+                backgroundImage:
+                  "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"120\" viewBox=\"0 0 120 120\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"2\" stitchTiles=\"stitch\"/></filter><rect width=\"120\" height=\"120\" filter=\"url(%23n)\" opacity=\"0.6\"/></svg>')",
+                backgroundSize: "160px 160px",
+              }}
+            />
 
-          {/* Tabs */}
-          <div className="flex flex-wrap gap-2 mb-8">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                    activeTab === tab.id
-                      ? "bg-cyan-400/20 text-cyan-400 border border-cyan-400/30"
-                      : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
+            <div className="relative z-10 flex min-h-[80vh]">
+              {/* Left Sidebar Navigation */}
+              <div className="w-64 p-6 border-r border-white/10">
+                <div className="mb-8">
+                  <h1 className="text-2xl font-bold text-white mb-1">My Account</h1>
+                  <p className="text-white/60 text-sm">Manage your content</p>
+                </div>
+                
+                <nav className="space-y-2">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
+                          activeTab === tab.id
+                            ? "bg-cyan-400/20 text-cyan-400 border border-cyan-400/30"
+                            : "text-white/70 hover:bg-white/10 hover:text-white"
+                        }`}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
 
-          {/* Content */}
-          {renderContent()}
+              {/* Main Content Area */}
+              <div className="flex-1 p-8">
+                <div className="max-w-4xl">
+                  {renderContent()}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Vortex>
     </div>
